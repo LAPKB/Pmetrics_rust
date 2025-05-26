@@ -227,3 +227,24 @@
 
 
 "model"
+
+
+#' @name modelLibary
+#' @docType data
+#' @title Pmetrics model library
+#' @usage model
+#' @format Tibble with model definitions. Columns are as follows:
+#' * ncomp: number of compartments
+#' * comp: compartment names and correspondingn numbers
+#' * par: parameters in the model
+#' * route: routes of administration
+#' * elim: elimination compartment
+#' * model_list: list version of model, equivalent to the `model_list` component
+#' of [PM_model()] objects
+#' * name: name of the model
+#' * alt: alternative model names, e.g. advan1-trans1
+#' @author Michael Neely
+#' @keywords datasets
+
+
+"modelLibrary"

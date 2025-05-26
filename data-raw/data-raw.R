@@ -80,5 +80,11 @@ simEx <- NPex$sim(
 )
 usethis::use_data(simEx, overwrite = TRUE)
 
+### model library
+
+source("modelLibrary.R")
+usethis::use_data(modelLibrary, overwrite = TRUE)
+
+
 
 setwd(wd)
