@@ -458,7 +458,8 @@ build_model <- function(...) {
       # MODEL LIBRARY COMPONENT -------------------------------------------------
 
 
-      mods <- modelLibrary
+      mods <- model_lib(show = FALSE)
+      
 
       # create the global filter results
       mods_filter <- reactiveVal()
@@ -517,20 +518,20 @@ build_model <- function(...) {
           this_filter <- this_filter %>%
             dplyr::filter(algebraic != "")
         }
+        
+        #browser()
 
         # if search box changes, execute this
         if (input$searchme != "") {
-          # browser()
-          # terms <- stringr::str_split(input$searchme, ",|;|\\s+") %>% unlist() %>% stringi::stri_remove_empty()
           terms <- stringr::str_split(input$searchme, ",|;|\\s+") %>% unlist()
           terms <- terms[nzchar(terms)]
           this_filter <- this_filter %>%
-            dplyr::filter(purrr::map_lgl(name, ~ find_x_in_y(terms, .x)))
+            dplyr::filter(purrr::map_lgl("Primary Name", ~ find_x_in_y(terms, .x)))
         }
 
         # update the global filter results
         if (nrow(this_filter) == 0) {
-          this_filter <- dplyr::tibble(name = "None")
+          this_filter <- dplyr::tibble("Primary Name" = "None")
         }
         mods_filter(this_filter)
       })
@@ -548,7 +549,7 @@ build_model <- function(...) {
               selectInput(
                 "mod_list",
                 "",
-                choices = mods_filter()$name,
+                choices = mods_filter()$'Primary Name',
                 selectize = FALSE,
                 multiple = FALSE,
                 size = 10
@@ -571,7 +572,7 @@ build_model <- function(...) {
         ignoreNULL = TRUE,
         {
           output$model_snapshot <- renderPlot({
-            mod_to_plot <- tryCatch(modelLibrary$mod[which(modelLibrary$name == input$mod_list)][[1]], error = function(e) NA)
+            mod_to_plot <- tryCatch(model_lib(input$mod_list[[1]]), error = function(e) NA) #returns ODEs
             class(mod_to_plot) <- "PM_model"
             # browser()
             tryCatch(plot(mod_to_plot),
@@ -593,8 +594,11 @@ build_model <- function(...) {
         ignoreInit = TRUE,
         {
           # update reactive variables
-          model_obj(modelLibrary$mod[which(modelLibrary$name == input$mod_list)][[1]]$model_list) # this model will update
-          alg_mod(modelLibrary$algebraic[which(modelLibrary$name == input$mod_list)]) # indicates algebraic model
+          model_obj(model_lib(input$mod_list))$model_list[[1]] # this model will update
+          #model_obj(modelLibrary$mod[which(modelLibrary$name == input$mod_list)][[1]]$model_list) # this model will update
+          alg_mod(model_lib(input$mod_list))$name[[1]] # indicates algebraic model
+          #alg_mod(modelLibrary$algebraic[which(modelLibrary$name == input$mod_list)]) # indicates algebraic model
+          
           orig_model(model_obj()$eqn) # keep the original model
           orig_alg_model(alg_mod()) # keep the original algebraic code
         }

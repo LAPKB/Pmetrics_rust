@@ -687,7 +687,7 @@ PM_model_list <- R6::R6Class("PM_model_list",
                              public = list(
                                model_list = NULL,
                                binary_path = NULL,
-                            
+                               
                                initialize = function(model_list) {
                                  # guarantees primary keys are lowercase and max first 3 characters
                                  orig_names <- names(model_list)
@@ -726,7 +726,7 @@ PM_model_list <- R6::R6Class("PM_model_list",
                                  # no equations found
                                  if (length(eqs) == 0) {
                                    if (length(tem) > 0 && tem != "ode") { # found template, so get equations from model library
-                                     model_list$eqn <- model_lib(name = tem, show = FALSE) # these are only for plotting purposes
+                                     model_list$eqn <- model_lib(name = tem, show = FALSE)$model_list[[1]]$eqn %>% unlist() # these are only for plotting purposes
                                    } else { # no equations or template, so try to parse like old Pmetrics and look for key variable names
                                      key_vars <- c("ka", "ke", "v", "kcp", "kpc", "cl", "vc", "q", "vp")
                                      pri <- names(model_list$pri)
@@ -769,7 +769,7 @@ PM_model_list <- R6::R6Class("PM_model_list",
                                      }
                                      
                                      # we found a template, then we need to get the equations from the model library
-                                     model_list$eqn <- model_lib(name = tem, show = FALSE)
+                                     model_list$eqn <- model_lib(name = tem, show = FALSE)$model_list[[1]]$eqn %>% unlist()
                                    }
                                  } else { # length of equations > 0
                                    if (length(tem) == 0) { # equations present, but no template
@@ -780,7 +780,7 @@ PM_model_list <- R6::R6Class("PM_model_list",
                                  
                                  self$model_list <- private$order(model_list)
                                },
-                       
+                               
                                write = function(model_path = "genmodel.txt", engine = "npag") {
                                  engine <- tolower(engine)
                                  keys <- names(self$model_list)
@@ -794,7 +794,7 @@ PM_model_list <- R6::R6Class("PM_model_list",
                                  
                                  return(model_path)
                                },
-                            
+                               
                                write_rust = function(file_name = "parsed_model.txt") {
                                  model_file <- system.file("Rust/template.rs", package = "Pmetrics")
                                  content <- readr::read_file(model_file)
@@ -929,7 +929,7 @@ PM_model_list <- R6::R6Class("PM_model_list",
                                  # browser()
                                  readr::write_file(content, file_name)
                                },
-                          
+                               
                                update = function(changes_list) {
                                  keys <- names(changes_list)
                                  if (!private$lower3(keys) %in% c("pri", "sec", "tem", "dif", "eqn", "ini", "cov", "lag", "bol", "out", "err", "fa", "ext")) {
@@ -989,7 +989,7 @@ PM_model_list <- R6::R6Class("PM_model_list",
                                  if (is.character(data)) {
                                    data <- PM_data$new(data)
                                  }
-                              
+                                 
                                  if (!inherits(data, "PM_data")) {
                                    data <- tryCatch({
                                      PM_data$new(data)
@@ -1033,7 +1033,7 @@ PM_model_list <- R6::R6Class("PM_model_list",
                                      "i" = "Check the number of output equations in the data and model."
                                    ))
                                  }
-
+                                 
                                  # check if model compiled and if not, do so
                                  self$compile()
                                  
@@ -1876,9 +1876,9 @@ PM_model_file <- R6::R6Class("PM_model_file",
 #' @family PMplots
 
 plot.PM_model <- function(x, marker = TRUE, line = TRUE, explicit, implicit, ...) {
-  if (!checkRequiredPackages("PmetricsApps", repos = "LAPKB/PmetricsApps", quietly = FALSE)) {
-    return(invisible(NULL))
-  }
+  # if (!checkRequiredPackages("PmetricsApps", repos = "LAPKB/PmetricsApps", quietly = FALSE)) {
+  #   return(invisible(NULL))
+  # }
   model <- x
   marker <- if (is.list(marker) || marker) {
     amendMarker(marker, default = list(color = "dodgerblue", size = 0.25, line = list(width = 0.5)))
@@ -2248,17 +2248,18 @@ plot.PM_model <- function(x, marker = TRUE, line = TRUE, explicit, implicit, ...
 
 # MODEL LIBRARY -----------------------------------------------------------
 
-#' @title Pharmacokinetic model library
+#' @title Display or return pharmacokinetic model library
 #' @description
 #' `r lifecycle::badge("stable")`
 #'
-#' This function provides a list of available pharmacokinetic models.
+#' This function provides a list of available pharmacokinetic models in Pmetrics,
+#' accessing the [modelLibrary] data object.
 #' @param name The name of the model to display. If `NULL`, the entire list is displayed.
 #' @param show If `TRUE`, the model is displayed in the console. If `FALSE`, the model is only returned as a tibble.
 #' @return If `name` is not `NULL`, a tibble with the model equations; otherwise the
 #' function returns `NULL` and only displays the entire library in tabular format.
 #' @author Michael Neely
-#' @seealso [PM_model]
+#' @seealso [PM_model], [modelLibrary]
 #' @export
 #' @examples
 #' \dontrun{
@@ -2266,69 +2267,26 @@ plot.PM_model <- function(x, marker = TRUE, line = TRUE, explicit, implicit, ...
 #' model_lib("one_comp_iv")
 #' }
 model_lib <- function(name = NULL, show = TRUE) {
-  mod_table <- matrix(
-    c(
-      "one_comp_iv", "advan1\nadvan1-trans1", "One compartment IV input, Ke", "1 = Central", "Ke, V",
-      "one_comp_iv_cl", "advan1\nadvan1-trans2", "One compartment IV input, CL", "1 = Central", "CL, V",
-      "two_comp_bolus", "advan2\nadvan2-trans1", "Two compartment bolus input, Ke", "1 = Bolus\n2 = Central", "Ka, Ke, V",
-      "two_comp_bolus_cl", "advan2\nadvan2-trans2", "Two compartment bolus input, CL", "1 = Bolus\n2 = Central", "Ka, CL, V",
-      "two_comp_iv", "advan3\nadvan3-trans1", "Two compartment IV input, Ke", "1 = Central\n2 = Peripheral", "Ke, V, KCP, KPC",
-      "two_comp_iv_cl", "advan3\nadvan3-trans4", "Two compartment IV input, CL", "1 = Central\n2 = Peripheral", "CL, V1, Q, V2",
-      "three_comp_bolus", "advan4\nadvan4-trans1", "Three compartment bolus input, Ke", "1 = Bolus\n2 = Central\n3 = Peripheral", "Ka, Ke, V, KCP, KPC",
-      "three_comp_bolus_cl", "advan4\nadvan4-trans4", "Three compartment bolus input, CL", "1 = Bolus\n2 = Central\n3 = Peripheral", "Ka, CL, V2, Q, V3"
-    ),
-    ncol = 5, byrow = TRUE
-  ) %>%
-    as.data.frame() %>%
-    stats::setNames(c("Primary Name", "Alt Names", "Description", "Compartments", "Parameters")) %>%
-    tibble::as_tibble()
-  
-  
-  mod_table$ODE <- list(
-    list(
-      "dX[1] = RATEIV[1] - Ke*X[1]"
-    ),
-    list(
-      "dX[1] = RATEIV[1] - CL/V*X[1]"
-    ),
-    list(
-      "dX[1] = BOLUS[1] - Ka*X[1]",
-      "dX[2] = RATEIV[1] + Ka*X[1] - Ke*X[2]"
-    ),
-    list(
-      "dX[1] = BOLUS[1] - Ka*X[1]",
-      "dX[2] = RATEIV[1] + Ka*X[1] - CL/V*X[2]"
-    ),
-    list(
-      "dX[1] = RATEIV[1] - (Ke + KCP)*X[1] + KPC*X[2]",
-      "dX[2] = KCP*X[1] - KPC*X[2]"
-    ),
-    list(
-      "dX[1] = RATEIV[1] - (CL + Q)/V1*X[1] + Q/V2*X[2]",
-      "dX[2] = Q/V1*X[1] - Q/V2*X[2]"
-    ),
-    list(
-      "dX[1] = BOLUS[1] - Ka*X[1]",
-      "dX[2] = RATEIV[1] + Ka*X[1] - (Ke + KCP)*X[2] + KPC*X[3]",
-      "dX[3] = KCP*X[2] - KPC*X[3]"
-    ),
-    list(
-      "dX[1] = BOLUS[1] - Ka*X[1]",
-      "dX[2] = RATEIV[1] + Ka*X[1] - (CL + Q)/V2*X[2] + Q/V3*X[3]",
-      "dX[3] = Q/V2*X[2] - Q/V3*X[3]"
-    )
-  )
-  
-  
+ 
   if (is.null(name)) {
-    print(mod_table %>%
-            dplyr::rowwise() %>%
-            dplyr::mutate(ODE = paste(unlist(ODE), collapse = "\n")) %>%
-            flextable::flextable() %>%
-            flextable::set_header_labels(ODE = "Corresponding ODE") %>%
-            flextable::autofit())
+    if(show){
+      print(modelLibrary %>%
+              select(name, alt, comp, par, route, model_list) %>%
+              dplyr::rowwise() %>%
+              dplyr::mutate(ODE = paste(unlist(model_list$eqn), collapse = "\n")) %>%
+              select(-model_list) %>%
+              flextable::flextable() %>%
+              flextable::set_header_labels(
+                name = "Primary",
+                alt = "Alternate",
+                comp = "Compartments",
+                par = "Parameters",
+                route = "Routes",
+                ODE = "Corresponding ODE") %>%
+              flextable::autofit())
+    }
     
-    return(invisible(NULL))
+    return(invisible(modelLibrary))
   }
   
   if (!tolower(name) %in%
@@ -2349,12 +2307,32 @@ model_lib <- function(name = NULL, show = TRUE) {
   }
   
   if (show) {
-    print(mod_table %>% dplyr::filter(`Primary Name` == name) %>%
-            dplyr::mutate(ODE = paste(unlist(ODE), collapse = "\n")) %>%
+    print(modelLibrary %>% 
+            select(name, alt, comp, par, model_list) %>%
+            dplyr::filter(name == !!name) %>%
+            rowwise() %>%
+            dplyr::mutate(ODE = paste(unlist(model_list$eqn), collapse = "\n")) %>%
+            select(-model_list) %>%
             flextable::flextable() %>%
-            flextable::set_header_labels(ODE = "Corresponding ODE") %>%
+            flextable::set_header_labels(
+              name = "Primary",
+              alt = "Alternate",
+              comp = "Compartments",
+              par = "Parameters",
+              ODE = "Corresponding ODE") %>%
             flextable::autofit())
   }
   
-  return(invisible(mod_table %>% dplyr::filter(`Primary Name` == name) %>% dplyr::select(ODE) %>% purrr::pluck(1, 1) %>% unlist()))
+  return(invisible(modelLibrary %>% dplyr::filter(name == !!name)))
 }
+
+
+
+
+
+
+
+
+
+
+

@@ -105,7 +105,7 @@ PM_fit <- R6::R6Class(
     run = function(){
       cli::cli_warn(c(
         "!" = "The `$run` method for `PM_fit` objects has been deprecated.",
-        "i" = "Use the `$fit` method in [PM_model()] instead."
+        "i" = "Use the `$fit` method in {.fn PM_model()} instead."
       ))
       return(invisible(NULL))
     },
