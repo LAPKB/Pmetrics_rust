@@ -9,7 +9,6 @@ use pmcore::prelude::{data::read_pmetrics, pharmsol::exa::build, Analytical, ODE
 use simulation::SimulationRow;
 use std::process::Command;
 
-
 fn validate_paths(data_path: &str, model_path: &str) {
     if !std::path::Path::new(data_path).exists() {
         panic!("Data path does not exist: {}", data_path);
@@ -224,11 +223,6 @@ fn template_path() -> String {
 fn clear_build() {
     build::clear_build();
 }
-
-
-
-
-
 
 // Macro to generate exports.
 // This ensures exported functions are registered with R.
