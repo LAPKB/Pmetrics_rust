@@ -30,8 +30,7 @@ inst/rust/template/*
 inst/options/PMoptions.json
 inst/options/PMoptions.json
 inst/doc
-<<<<<<< Updated upstream
-=======
+
 
 target/
 *_test.R
@@ -51,4 +50,4 @@ vignettes/*_files/
 man/figures/
 
 Cargo.lock
->>>>>>> Stashed changes
+
