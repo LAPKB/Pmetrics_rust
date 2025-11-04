@@ -1,0 +1,30 @@
+[package]
+name = "sobol_burley"
+version = "0.5.0"
+description = "A seedable Owen-scrambled Sobol sequence."
+categories = ["algorithms", "mathematics", "no-std"]
+keywords = ["sobol", "low-discrepancy", "monte-carlo", "quasirandom", "sampling"]
+documentation = "https://docs.rs/sobol_burley"
+repository = "https://github.com/cessen/sobol_burley"
+readme = "README.md"
+authors = ["Nathan Vegdahl <cessen@cessen.com>"]
+edition = "2018"
+license = "MIT OR Apache-2.0"
+build = "build.rs"
+exclude = ["/images"]
+
+[lib]
+name = "sobol_burley"
+path = "src/lib.rs"
+
+[features]
+default = ["simd"]
+simd = []
+
+[dev-dependencies]
+rand = "0.8"
+bencher = "0.1.5"
+
+[[bench]]
+name = "bench"
+harness = false

@@ -30,3 +30,25 @@ inst/rust/template/*
 inst/options/PMoptions.json
 inst/options/PMoptions.json
 inst/doc
+<<<<<<< Updated upstream
+=======
+
+target/
+*_test.R
+*.csv
+*.txt
+1
+2
+3
+
+# pkgdown documentation site (rendered)
+docs/
+
+# Vignette rendered support files (Quarto/R Markdown)
+vignettes/*_files/
+
+# Man page figures if auto-generated
+man/figures/
+
+Cargo.lock
+>>>>>>> Stashed changes
