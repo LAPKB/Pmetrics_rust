@@ -52,3 +52,5 @@ man/figures/
 Cargo.lock
 
 src/.cargo/
+
+vignettes/.quarto/
