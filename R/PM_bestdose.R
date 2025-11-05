@@ -158,19 +158,6 @@ PM_bestdose <- R6::R6Class(
             self$result <- result
 
             cli::cli_alert_success("Optimization complete!")
-            cat("Result names:", names(result), "\n")
-            cat("Result structure:\n")
-            print(str(result))
-            if ("method" %in% names(result)) {
-                cli::cli_alert_info("Method: {result[[\"method\"]]}")
-            }
-            if ("status" %in% names(result)) {
-                cli::cli_alert_info("Status: {result[[\"status\"]]}")
-            }
-            if ("doses" %in% names(result)) {
-                cli::cli_alert_info("Optimal doses: {paste(round(result[[\"doses\"]], 2), collapse = ', ')} mg")
-            }
-
             invisible(self)
         },
 
@@ -179,10 +166,11 @@ PM_bestdose <- R6::R6Class(
         print = function() {
             cat("BestDose Optimization Results\n")
             cat("==============================\n\n")
-            cat(sprintf("Optimal doses: %s mg\n", paste(round(self$result$doses, 2), collapse = ", ")))
-            cat(sprintf("Objective function: %.6f\n", self$result$objf))
-            cat(sprintf("Status: %s\n", self$result$status))
-            cat(sprintf("Method: %s\n", self$result$method))
+            cat(sprintf("Optimal doses: [%.2f, %.2f] mg\n", self$get_doses()[1], self$get_doses()[2]))
+            cat(sprintf("Objective function: %.10f\n", self$get_objf()))
+            cat(sprintf("ln(Objective): %.4f\n", log(self$get_objf())))
+            cat(sprintf("Method: %s\n", self$get_method()))
+            cat(sprintf("Status: %s\n", self$get_status()))
             cat(sprintf("\nNumber of predictions: %d\n", nrow(self$result$predictions)))
             if (!is.null(self$result$auc_predictions)) {
                 cat(sprintf("Number of AUC predictions: %d\n", nrow(self$result$auc_predictions)))
