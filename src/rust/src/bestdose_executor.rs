@@ -135,15 +135,12 @@ pub(crate) fn bestdose_ode(
         .map_err(|e| format!("Failed to parse settings: {}", e))?;
 
     // 3. Parse the prior (theta + weights)
-    let (population_theta, prior_weights) = parse_prior(
-        &prior_path.to_str().unwrap().to_string(),
-        &settings,
-    )
-    .map_err(|e| format!("Failed to parse prior: {}", e))?;
-    
-    let population_weights = prior_weights.ok_or_else(|| {
-        "Prior file must contain a 'prob' column with weights".to_string()
-    })?;
+    let (population_theta, prior_weights) =
+        parse_prior(&prior_path.to_str().unwrap().to_string(), &settings)
+            .map_err(|e| format!("Failed to parse prior: {}", e))?;
+
+    let population_weights = prior_weights
+        .ok_or_else(|| "Prior file must contain a 'prob' column with weights".to_string())?;
 
     // 4. Load past data (if provided)
     let past_data = if let Some(path) = past_data_path {
