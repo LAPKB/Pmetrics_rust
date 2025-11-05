@@ -171,7 +171,7 @@ NPex$cov$plot(V ~ wt,
 }
 }
 \seealso{
-\link{PM_cov}, \link{PM_result}, \link[plotly:schema]{plotly::schema}
+\link{PM_cov}, \link{PM_result}, \link{schema}
 
 Other PMplots: 
 \code{\link{plot.PM_cycle}()},
