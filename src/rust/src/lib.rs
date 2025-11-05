@@ -164,7 +164,13 @@ fn parse_theta(matrix: RMatrix<f64>) -> Vec<Vec<f64>> {
 /// Compiles the text representation of a model into a binary file.
 ///@export
 #[extendr]
-fn compile_model(model_path: &str, output_path: &str, params: Strings, kind: &str) -> Result<()> {
+fn compile_model(
+    model_path: &str,
+    template_path: &str,
+    output_path: &str,
+    params: Strings,
+    kind: &str,
+) -> Result<()> {
     let params: Vec<String> = params.iter().map(|x| x.to_string()).collect();
     let model_txt = std::fs::read_to_string(model_path).expect("Failed to read model file");
     match kind {
@@ -172,6 +178,7 @@ fn compile_model(model_path: &str, output_path: &str, params: Strings, kind: &st
             model_txt,
             Some(output_path.into()),
             params.to_vec(),
+            template_path.into(),
             |_key, val| {
                 print!("{}", val);
             },
@@ -180,6 +187,7 @@ fn compile_model(model_path: &str, output_path: &str, params: Strings, kind: &st
             model_txt,
             Some(output_path.into()),
             params.to_vec(),
+            template_path.into(),
             |_key, val| {
                 print!("{}", val);
             },
@@ -193,8 +201,8 @@ fn compile_model(model_path: &str, output_path: &str, params: Strings, kind: &st
 /// Dummy function to cache compilation artifacts.
 ///@export
 #[extendr]
-fn dummy_compile() -> Result<String> {
-    let build_path = build::dummy_compile(|_key, val| {
+fn dummy_compile(template_path: &str) -> Result<String> {
+    let build_path = build::dummy_compile(template_path.into(), |_key, val| {
         print!("{}", val);
     })?;
     Ok(build_path)
@@ -216,18 +224,6 @@ fn model_parameters(model_path: &str, kind: &str) -> Result<Vec<String>> {
         "analytical" => Ok(executor::model_parameters::<ODE>(model_path.into())),
         err => Err(anyhow::format_err!("{} is not a supported model type", err)),
     }
-}
-
-//@export
-#[extendr]
-fn template_path() -> String {
-    build::template_path()
-}
-
-//@export
-#[extendr]
-fn clear_build() {
-    build::clear_build();
 }
 
 /// Initialize the tracing subscriber with the custom R formatter
@@ -263,8 +259,6 @@ extendr_module! {
     fn is_cargo_installed;
     fn fit;
     fn model_parameters;
-    fn template_path;
-    fn clear_build;
     fn setup_logs;
 }
 

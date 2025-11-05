@@ -81,3 +81,5 @@ target/
 3
 Cargo.lock
 docs/
+
+man/

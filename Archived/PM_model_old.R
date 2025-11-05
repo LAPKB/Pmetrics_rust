@@ -553,6 +553,7 @@ PM_model_list <- R6::R6Class("PM_model_list",
         {
           compile_model(
             temp_model,
+            tools::R_user_dir(package = "Pmetrics"),
             model_path, private$get_primary()
           )
           self$binary_path <- model_path
