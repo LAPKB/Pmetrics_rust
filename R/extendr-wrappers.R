@@ -40,5 +40,9 @@ model_parameters <- function(model_path, kind) .Call(wrap__model_parameters, mod
 #'@export
 setup_logs <- function() .Call(wrap__setup_logs)
 
+#' Run BestDose optimization to find optimal doses
+#'@export
+bestdose <- function(model_path, prior_path, past_data_path, target_data_path, time_offset, dose_min, dose_max, bias_weight, target_type, params, kind) .Call(wrap__bestdose, model_path, prior_path, past_data_path, target_data_path, time_offset, dose_min, dose_max, bias_weight, target_type, params, kind)
+
 
 # nolint end
