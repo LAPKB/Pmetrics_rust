@@ -161,7 +161,7 @@ ITex$final$plot(Ke ~ V)
 }
 }
 \seealso{
-\link{PM_final}, \link[plotly:schema]{plotly::schema}
+\link{PM_final}, \link{schema}
 
 Other PMplots: 
 \code{\link{plot.PM_cov}()},

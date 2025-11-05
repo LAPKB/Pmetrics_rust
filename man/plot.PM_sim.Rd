@@ -191,7 +191,7 @@ simEx$plot(log = FALSE, line = list(color = "orange"))
 }
 }
 \seealso{
-\link{PM_sim}, \link[plotly:plot_ly]{plotly::plot_ly}, \link[plotly:schema]{plotly::schema}
+\link{PM_sim}, \link{plot_ly}, \link{schema}
 
 Other PMplots: 
 \code{\link{plot.PM_cov}()},
