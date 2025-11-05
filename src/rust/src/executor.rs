@@ -31,7 +31,7 @@ pub(crate) fn simulate<E: Equation>(
     ))
 }
 
-pub(crate) fn fit<E: Equation>(
+pub(crate) fn fit<E: Equation + Send + 'static>(
     model_path: PathBuf,
     data: PathBuf,
     params: List,
