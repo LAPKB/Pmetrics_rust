@@ -54,7 +54,7 @@ PM_result <- R6::R6Class(
     #' Use the `$save` method on the augmented `PM_result` object to save it with the
     #' new optimal sampling results.
     opt_samp = NULL,
-    
+
     #' @description
     #' Create new object populated with data from previous run
     #' @details
@@ -73,9 +73,9 @@ PM_result <- R6::R6Class(
             if (!inherits(out[[x]], "R6")) { # older save
               cli::cli_abort(c("x" = "The object was saved in an older format. Please re-run the analysis."))
             } else {
-              if(x == "model"){
-                args <- list(x  = out[[x]], compile = FALSE)
-              } else { 
+              if (x == "model") {
+                args <- list(x = out[[x]], compile = FALSE)
+              } else {
                 args <- list(out[[x]], path = path, quiet = TRUE)
               }
               self[[x]] <- do.call(get(paste0("PM_", x))$new, args = args) # was saved in R6 format, but remake to update if needed
@@ -83,24 +83,24 @@ PM_result <- R6::R6Class(
           }
         }
       )
-      
+
       # these are diagnostics, not R6
       self$errfile <- out$errfile
       self$success <- out$success
-      
+
       # add the pop/post data to data
       if (is.null(self$data$pop) | is.null(self$data$post)) {
         self$data <- PM_data$new(self$data$data, quiet = TRUE)
         self$data$pop <- self$pop$data
         self$data$post <- self$post$data
       }
-      
+
       return(self)
     },
     #' @description
     #' Fit the model to the data
     #' #' @details
-    #' This method is used to fit the model in the [PM_result] object to data. 
+    #' This method is used to fit the model in the [PM_result] object to data.
     #' It calls the `$fit` method of the model stored in the `model` field.
     #' @param data Optional data to fit. If not provided, the data stored in the
     #' `data` field of the [PM_result] object will be used. This can be useful to
@@ -109,15 +109,15 @@ PM_result <- R6::R6Class(
     #' @param ... Additional arguments passed to the model's `$fit` method.
     #' @return Returns an invisible [PM_result].
     #' @export
-    #' 
-    fit = function(data, ...){
+    #'
+    fit = function(data, ...) {
       if (missing(data)) {
         data <- self$data
       }
       res <- self$model$fit(data = data, ...)
       return(invisible(res))
     },
-    
+
     #' @description
     #' Plot generic function based on type
     #' @param type Type of plot based on class of object
@@ -129,7 +129,7 @@ PM_result <- R6::R6Class(
         self[[type]]$plot(...)
       }
     },
-    
+
     #' @description
     #' Summary generic function based on type
     #' @param type Type of summary based on class of object
@@ -141,7 +141,7 @@ PM_result <- R6::R6Class(
         self[[type]]$summary(...)
       }
     },
-    
+
     #' @description
     #' AUC generic function based on type
     #' @param type Type of AUC based on class of object
@@ -152,7 +152,7 @@ PM_result <- R6::R6Class(
       }
       self[[type]]$auc(...)
     },
-    
+
     #' @description
     #' Perform non-compartmental analysis
     #' @details
@@ -180,22 +180,22 @@ PM_result <- R6::R6Class(
       if (!"poppar" %in% names(dots)) {
         dots$poppar <- self$final
       }
-      
+
       if (!"data" %in% names(dots)) {
         dots$data <- self$data
       }
-      
+
       if (!"model" %in% names(dots)) {
         dots$model <- self$model
       }
-      
+
       # store copy of the final object
       bk_final <- self$final$clone()
       sim <- do.call(PM_sim$new, dots)
       self$final <- bk_final
       return(sim)
     },
-    
+
     #' @description
     #' Run BestDose optimization using this result as the prior
     #' @details
@@ -205,15 +205,15 @@ PM_result <- R6::R6Class(
     #' robustness. By default, uses the `$final`, `$model`, and `$data` objects from
     #' this result. Most commonly, you will supply a different `target` data object.
     #' @param target PM_data object or path to CSV with target doses/observations.
-    #' Required. This defines the dosing template and target values. Set dose amounts 
+    #' Required. This defines the dosing template and target values. Set dose amounts
     #' to 0 for doses to be optimized.
     #' @param past_data Optional: PM_data object or path to CSV with patient history.
     #' If NULL (default), uses the full dataset from this result.
-    #' @param dose_range Named list with min and max allowable doses. 
+    #' @param dose_range Named list with min and max allowable doses.
     #' Default: list(min = 0, max = 1000)
     #' @param bias_weight Numeric [0,1] controlling personalization level.
     #' 0 = fully personalized, 1 = population-based. Default: 0.5 (balanced)
-    #' @param target_type One of "concentration" (default), "auc_from_zero", or 
+    #' @param target_type One of "concentration" (default), "auc_from_zero", or
     #' "auc_from_last_dose"
     #' @param time_offset Optional: time offset for past/future concatenation
     #' @param ... Additional arguments passed to [PM_bestdose]
@@ -222,17 +222,17 @@ PM_result <- R6::R6Class(
     #' \dontrun{
     #' # Load NPAG result
     #' result <- PM_load(1)
-    #' 
+    #'
     #' # Create target data
     #' target <- PM_data$new("target.csv")
-    #' 
+    #'
     #' # Run BestDose optimization
     #' bd <- result$bestdose(
     #'   target = target,
     #'   dose_range = list(min = 50, max = 500),
     #'   bias_weight = 0.5
     #' )
-    #' 
+    #'
     #' # View results
     #' print(bd)
     #' bd$get_doses()
@@ -248,7 +248,7 @@ PM_result <- R6::R6Class(
       if (is.null(past_data)) {
         past_data <- self$data
       }
-      
+
       PM_bestdose$new(
         prior = self,
         model = self$model,
@@ -261,7 +261,7 @@ PM_result <- R6::R6Class(
         ...
       )
     },
-    
+
     #' @description
     #' Save the current PM_result object to an .Rdata file.
     #' @details
@@ -282,7 +282,7 @@ PM_result <- R6::R6Class(
     #' your current working directory, specify `run = 1` to save the result to the "outputs"
     #' subfolder of the "1" folder.
     #' @param file Custom file name. Default is "PMout.Rdata". If `run` is not specified, `file`
-    #' should be the full path and filename. 
+    #' should be the full path and filename.
     save = function(run, file = "PMout.Rdata") {
       if (missing(run)) {
         cli::cli_inform(c(
@@ -309,7 +309,7 @@ PM_result <- R6::R6Class(
       )
       save(PMout, file = paste0(outputfolder, "/", file))
     },
-    
+
     #' @description
     #' Validate the result by internal simulation methods.
     #' @param ... Arguments passed to [PM_valid].
@@ -321,9 +321,8 @@ PM_result <- R6::R6Class(
         " " = "For example, if your results are in {.code my_run}, use {.code my_run$save(1)} to save back to the outputs folder of run 1."
       ))
       return(invisible(self))
-      
     },
-    
+
     #' @description
     #' Conduct stepwise linear regression of Bayesian posterior parameter values
     #' and covariates.
@@ -331,7 +330,7 @@ PM_result <- R6::R6Class(
     step = function(...) {
       PM_step(self$cov$data, ...)
     },
-    
+
     #' @description
     #' Calculate optimal sampling times.
     #'
@@ -346,7 +345,7 @@ PM_result <- R6::R6Class(
       })
       return(invisible(self))
     },
-    
+
     #' @description
     #' `r lifecycle::badge("deprecated")`
     #'
@@ -410,7 +409,7 @@ PM_result$load <- function(...) {
 #' run4 <- PM_load(file = "Pmetrics/MyRuns/4/outputs/PMout.Rdata") # loads from Pmetrics/MyRuns/4/outputs/PMout.Rdata
 #' run5 <- PM_load() # loads from ./PMout.Rdata
 #' }
-#' 
+#'
 #' @author Michael Neely and Julian Otalvaro
 #' @seealso [PM_final],
 #' [PM_cycle], [PM_op], [PM_cov],
@@ -427,20 +426,22 @@ PM_load <- function(run, path = ".", file = "PMout.Rdata") {
       names(aux_list) <- names(Out)[i]
       result <- append(result, aux_list)
     }
-    
+
     return(result)
   }
-  
+
   found <- "" # initialize
-  
+
   if (!missing(run)) {
     filepath <- file.path(path, run, "outputs", file)
   } else {
     filepath <- file.path(path, file)
-  } 
-  
-  if (file.exists(filepath)) { found <- filepath }
-  
+  }
+
+  if (file.exists(filepath)) {
+    found <- filepath
+  }
+
   if (found != "") {
     result <- output2List(Out = get(load(found)))
     rebuild <- PM_result$new(result, path = dirname(found), quiet = TRUE)
@@ -464,31 +465,32 @@ update <- function(res, found) {
       # start conversion
       n_cyc <- nrow(dat$mean)
       n_out <- max(res$op$outeq)
-      dat$gamlam <- dat$gamlam %>% select(starts_with("add")|starts_with("prop"))
+      dat$gamlam <- dat$gamlam %>% select(starts_with("add") | starts_with("prop"))
       if (ncol(gamlam) == 1 & n_out > 1) {
         gamlam <- cbind(gamlam, replicate((n_out - 1), gamlam[, 1]))
       }
       gamlam <- gamlam %>%
-      pivot_longer(
-        cols = everything(),
-        values_to = "value", names_to = c("type", "outeq"), 
-        names_sep = "\\."
-      ) %>%
-      mutate(cycle = rep(1:n_cyc, each = n_out)) %>%
-      select(cycle, value, outeq, type) %>% arrange(cycle, outeq)
+        pivot_longer(
+          cols = everything(),
+          values_to = "value", names_to = c("type", "outeq"),
+          names_sep = "\\."
+        ) %>%
+        mutate(cycle = rep(1:n_cyc, each = n_out)) %>%
+        select(cycle, value, outeq, type) %>%
+        arrange(cycle, outeq)
       if (is.matrix(dat$mean)) { # old fortran format, but not rust format
         dat$mean <- tibble::tibble(cycle = 1:n_cyc) %>%
-        dplyr::bind_cols(tidyr::as_tibble(dat$mean))
+          dplyr::bind_cols(tidyr::as_tibble(dat$mean))
         dat$median <- tibble::tibble(cycle = 1:n_cyc) %>%
-        dplyr::bind_cols(tidyr::as_tibble(dat$median))
+          dplyr::bind_cols(tidyr::as_tibble(dat$median))
         dat$sd <- tibble::tibble(cycle = 1:n_cyc) %>%
-        dplyr::bind_cols(tidyr::as_tibble(dat$sd))
+          dplyr::bind_cols(tidyr::as_tibble(dat$sd))
       }
       msg <- c(msg, "cycle")
       res$cycle <- dat
     }
   }
-  
+
   ####### DONE PROCESSING, INFORM #########
   if (!is.null(msg)) {
     cat(
@@ -516,6 +518,6 @@ update <- function(res, found) {
       cat("Results saved\n")
     }
   }
-  
+
   return(res)
 }
