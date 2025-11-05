@@ -197,6 +197,72 @@ PM_result <- R6::R6Class(
     },
     
     #' @description
+    #' Run BestDose optimization using this result as the prior
+    #' @details
+    #' BestDose finds optimal dosing regimens to achieve target drug concentrations
+    #' or AUC values. The algorithm uses Bayesian posterior estimation combined with
+    #' dual optimization to balance patient-specific adaptation and population-level
+    #' robustness. By default, uses the `$final`, `$model`, and `$data` objects from
+    #' this result. Most commonly, you will supply a different `target` data object.
+    #' @param target PM_data object or path to CSV with target doses/observations.
+    #' Required. This defines the dosing template and target values. Set dose amounts 
+    #' to 0 for doses to be optimized.
+    #' @param past_data Optional: PM_data object or path to CSV with patient history.
+    #' If NULL (default), uses the full dataset from this result.
+    #' @param dose_range Named list with min and max allowable doses. 
+    #' Default: list(min = 0, max = 1000)
+    #' @param bias_weight Numeric [0,1] controlling personalization level.
+    #' 0 = fully personalized, 1 = population-based. Default: 0.5 (balanced)
+    #' @param target_type One of "concentration" (default), "auc_from_zero", or 
+    #' "auc_from_last_dose"
+    #' @param time_offset Optional: time offset for past/future concatenation
+    #' @param ... Additional arguments passed to [PM_bestdose]
+    #' @return A [PM_bestdose] object containing optimal doses and predictions
+    #' @examples
+    #' \dontrun{
+    #' # Load NPAG result
+    #' result <- PM_load(1)
+    #' 
+    #' # Create target data
+    #' target <- PM_data$new("target.csv")
+    #' 
+    #' # Run BestDose optimization
+    #' bd <- result$bestdose(
+    #'   target = target,
+    #'   dose_range = list(min = 50, max = 500),
+    #'   bias_weight = 0.5
+    #' )
+    #' 
+    #' # View results
+    #' print(bd)
+    #' bd$get_doses()
+    #' }
+    bestdose = function(target,
+                        past_data = NULL,
+                        dose_range = list(min = 0, max = 1000),
+                        bias_weight = 0.5,
+                        target_type = "concentration",
+                        time_offset = NULL,
+                        ...) {
+      # Use this result's data as past_data if not specified
+      if (is.null(past_data)) {
+        past_data <- self$data
+      }
+      
+      PM_bestdose$new(
+        prior = self,
+        model = self$model,
+        past_data = past_data,
+        target = target,
+        dose_range = dose_range,
+        bias_weight = bias_weight,
+        target_type = target_type,
+        time_offset = time_offset,
+        ...
+      )
+    },
+    
+    #' @description
     #' Save the current PM_result object to an .Rdata file.
     #' @details
     #' This is useful if you have updated the result in some way, for example you
