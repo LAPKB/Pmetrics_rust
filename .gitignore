@@ -64,7 +64,6 @@ tests/testthat/Runs/
 .vscode/
 .Rd2pdf65996/
 other/
-Examples
 Experimental
 .httr-oauth
 inst/rust/template/*
@@ -73,8 +72,6 @@ inst/options/PMoptions.json
 inst/doc
 
 target/
-*_test.R
-*.csv
 *.txt
 1
 2
