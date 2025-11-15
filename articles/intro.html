@@ -88,13 +88,13 @@
 <section class="level2" data-number="1"><h2 data-number="1" id="rust">
 <span class="header-section-number">1</span> Rust<a class="anchor" aria-label="anchor" href="#rust"></a>
 </h2>
-<p><strong>As of v. 3.0</strong>, Pmetrics uses Rust for the core of the package and no longer uses Fortran. This is for several reasons, including the fact that Rust is a modern programming language that is more efficient and easier to maintain than Fortran. Rust is memory safe, which means that it prevents common programming errors that can lead to memory leaks and crashes. This makes it a more reliable choice for high-performance computing tasks. Additionally, Rust has a growing ecosystem of libraries and tools that make it easier to work with data and perform complex computations. This makes it a more flexible choice for a wide range of applications.</p>
+<p><strong>As of v. 3.0</strong>, Pmetrics uses Rust for the core of the package and no longer uses Fortran. This is for several reasons, including the fact that Rust is a modern programming language that is more efficient and easier to maintain than Fortran. Rust is memory safe, which means that it prevents common programming errors that can lead to memory leaks and crashes. This makes it a more reliable choice for high-performance computing tasks. Additionally, Rust has a growing ecosystem of libraries and tools that make it easier to work with data and perform complex computations and a more flexible choice for a wide range of applications.</p>
 </section><section class="level2" data-number="2"><h2 data-number="2" id="r6-architecture">
 <span class="header-section-number">2</span> R6 architecture<a class="anchor" aria-label="anchor" href="#r6-architecture"></a>
 </h2>
 <p><strong>As of v. 2.0</strong>, Pmetrics uses an “R6” architecture less dependent on reading and writing files, preserving hard drive space and speeding execution, since file I/O is slow. The goal is to simplfy work within a session by eliminating the need to repeatedly copy and paste files from one folder to the next whenever a new fit is executed. Storing critical objects in memory means they can be used without accessing files.</p>
 <p>However, data and model files are still used for longer term storage and preserving work from one session to another. The format of those files, both data and model, will be familiar to long term Pmetrics users.</p>
-<p>Data files are generally .csv and the format is detailed in <code><a href="../articles/data.html">vignette("data")</a></code>. A model can be read from a text file or can be defined directly in R. The easiest way to accomplish this is with our model builder app. Whether choosing to define models in R, with the builder app, or in a .txt file, details can be found in <code><a href="../articles/models.html">vignette("models")</a></code></p>
+<p>Data files are generally .csv and the format is detailed in <a href="data.html">data</a>]. A model can be read from a text file or can be defined directly in R. The easiest way to accomplish this is with our model builder app. Whether choosing to define models in R, with the builder app, or in a .txt file, details can be found in <a href="models.html">models</a>.</p>
 <p><strong>Tips for using this guide.</strong></p>
 <ul>
 <li><p>Items that are hyperlinked can be selected to cross reference within this manual or link to external sites.</p></li>
@@ -106,7 +106,7 @@
 </section><section class="level2" data-number="4"><h2 data-number="4" id="installation">
 <span class="header-section-number">4</span> Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>Pmetrics and all required components will run under Mac (Unix), Windows, and Linux. Instructions on obtaining and installing the package are in <code><a href="../articles/pmetrics.html">vignette("pmetrics")</a></code>.</p>
+<p>Pmetrics and all required components will run under Mac (Unix), Windows, and Linux. Instructions on obtaining and installing the package are <a href="pmetrics.html">here</a>.</p>
 </section><section class="level2" data-number="5"><h2 data-number="5" id="what-this-guide-is-not">
 <span class="header-section-number">5</span> What This Guide Is Not<a class="anchor" aria-label="anchor" href="#what-this-guide-is-not"></a>
 </h2>
@@ -231,7 +231,7 @@ current options. -->
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Michael Neely, Julián Otálvaro, Markus Hovd.</p>
+  <p>Developed by Michael Neely, Julián Otálvaro, Markus Hößvd.</p>
 </div>
 
 <div class="pkgdown-footer-right">

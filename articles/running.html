@@ -121,91 +121,33 @@
 </div>
 <p>Follow the instructions prompted in the terminal.</p>
 <p>To setup a R6 Pmetrics run, you must provide <code><a href="../reference/PM_data.html">PM_data()</a></code> and <code><a href="../reference/PM_model.html">PM_model()</a></code> objects. Once created, it does not matter where the files (if there are any) are located on your system because Pmetrics will use those objects, not the files.</p>
-<p>To bring these together, use the <code>PM_fit$new()</code> object creator. It only needs two arguments: the name of the data file in the working directory or in memory loaded via the Legacy <code><a href="../reference/PMreadMatrix.html">PMreadMatrix()</a></code>and a model object. <code><a href="../reference/PM_fit.html">PM_fit()</a></code> will accept a model object created by <code>PM_model</code> or the name of a model file in Legacy format and in the working directory.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Example 1 - data and model objects</span></span>
-<span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PM_data.html">PM_data</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="st">"data.csv"</span><span class="op">)</span></span>
-<span><span class="va">mod1</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PM_model.html">PM_model</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">...</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">fit1</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PM_fit.html">PM_fit</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">dat</span>, <span class="va">mod1</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Example 2 - data file and PM_model object</span></span>
-<span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PM_fit.html">PM_fit</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>data <span class="op">=</span> <span class="st">"data.csv"</span>, model <span class="op">=</span> <span class="va">mod1</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Example 3 - data object and model file</span></span>
-<span><span class="va">PMdata</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PMreadMatrix.html">PMreadMatrix</a></span><span class="op">(</span><span class="st">"data.csv"</span><span class="op">)</span></span>
-<span><span class="va">fit3</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PM_fit.html">PM_fit</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>data <span class="op">=</span> <span class="va">PMdata</span>, model <span class="op">=</span> <span class="st">"model.txt"</span><span class="op">)</span></span></code></pre></div>
-</div>
-<p>The fit object also contains a couple of methods attached to it.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fit1</span><span class="op">$</span><span class="fu">check</span><span class="op">(</span><span class="op">)</span> <span class="co"># This will check the consistency between the model and the data</span></span>
-<span></span>
-<span><span class="va">fit2</span><span class="op">$</span><span class="fu">save</span><span class="op">(</span><span class="st">"fit2.rds"</span><span class="op">)</span> <span class="co"># This will save the fit to a file in your working directory</span></span>
-<span></span>
-<span><span class="va">fit2_again</span> <span class="op">&lt;-</span> <span class="va">PM_fit</span><span class="op">$</span><span class="fu">load</span><span class="op">(</span><span class="st">"fit2.rds"</span><span class="op">)</span> <span class="co"># This will load the fit again from disk</span></span></code></pre></div>
-</div>
-<p>To see the full list of methods available see <code><a href="../reference/PM_fit.html">?PM_fit</a></code>.</p>
-<p><span class="legacy">Legacy</span></p>
-<p>When you wish to execute a Pmetrics run, you must ensure that appropriate Pmetrics model.txt and data.csv files are in the working directory, i.e. the Runs subdirectory of the project directory. R can be used to help prepare the data.csv file by importing and manipulating spreadsheets (e.g. <code>read.csv</code>). The Pmetrics function <code><a href="../reference/PMcheck.html">PMcheck()</a></code> can be used to check a .csv file or an R dataframe that is to be saved as a Pmetrics data.csv file for errors. It can also check a model file for errors in the context of a datafile, e.g. covariates that do not match. <code>PMcheck(...,fix=T)</code> attempts to automatically rid data files of errors. The function <code>PMwriteMatrix</code> can be used to write the R data object in the correct format for use by IT2B, NPAG, or the Simulator.</p>
 </section><section class="level3" data-number="1.3"><h3 data-number="1.3" id="running-the-model-to-fit-the-data">
 <span class="header-section-number">1.3</span> Running the model to fit the data<a class="anchor" aria-label="anchor" href="#running-the-model-to-fit-the-data"></a>
 </h3>
-<p><span class="r6">R6</span></p>
-<p>Once the <code><a href="../reference/PM_fit.html">PM_fit()</a></code> object is created the <code>$run()</code> method will execute the fit. Arguments for this method can be found in the help for <code><a href="../reference/NPrun.html">NPrun()</a></code> and <code>ITrun()</code>.</p>
+<p>Once the <code><a href="../reference/PM_model.html">PM_model()</a></code> object is created and compiled the <code>$fit()</code> method will execute the fit. Arguments for this method can be found in the help for <code>$fit</code> in <a href="https://lapkb.github.io/Pmetrics/reference/PM_model.html" class="external-link"><code>PM_model</code></a>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># default run parameters</span></span>
-<span><span class="va">fit3</span><span class="op">$</span><span class="fu">run</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">mod1</span><span class="op">$</span><span class="fu">fit</span><span class="op">(</span>data <span class="op">=</span> <span class="va">dat1</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># change the cycle number from default 100</span></span>
-<span><span class="va">fit3</span><span class="op">$</span><span class="fu">run</span><span class="op">(</span>cycles <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span>
+<span><span class="va">mod1</span><span class="op">$</span><span class="fu">fit</span><span class="op">(</span>data <span class="op">=</span> <span class="va">dat1</span>, cycles <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># change the engine from default NPAG</span></span>
-<span><span class="va">fit3</span><span class="op">$</span><span class="fu">run</span><span class="op">(</span>engine <span class="op">=</span> <span class="st">"IT2B"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">mod1</span><span class="op">$</span><span class="fu">fit</span><span class="op">(</span>engine <span class="op">=</span> <span class="st">"NPOD"</span><span class="op">)</span></span></code></pre></div>
 </div>
-<p><span class="legacy">Legacy</span></p>
-<p>As you will see in the skeleton R script made by <code><a href="../reference/PMtree.html">PMtree()</a></code> and placed in the Rscript subdirectory, if this is a first-time run, the R commands to run IT2B or NPAG are as follows. Recall that the “#” character is a comment character.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://lapkb.github.io/Pmetrics_rust/">Pmetrics</a></span><span class="op">)</span></span>
-<span><span class="co"># Run 1 - add your run description here</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/getwd.html" class="external-link">setwd</a></span><span class="op">(</span><span class="st">"working directory"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/NPrun.html">NPrun</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># for NPAG or ITrun() for IT2B</span></span></code></pre></div>
-</div>
-<p>The first line will load the Pmetrics library of functions. The second line sets the working directory to the specified path. The third line generates the batch file to run NPAG or IT2B and saves it to the working directory.</p>
-<p><strong>NOTE</strong>: On Mac systems, the batch file will be automatically launched in a Terminal window. On Windows systems prior to version 1.9, the batch file must be launched manually by double clicking the <em>npscript.bat</em> or <em>itscript.bat</em> file in the working directory. As of version 1.9, Windows users no longer need to do this.</p>
-<p><code>ITrun()</code> and <code><a href="../reference/NPrun.html">NPrun()</a></code> are described in full detail via their help commands in R. At minimum, they require a data file and a model file. If the default names of “data.csv” and “model.txt” are used, they may be called with no arguments. Again, the data and model files must be in the current working directory, usually the Runs folder.</p>
-<p>Both functions return the full path of the output directory to the clipboard. By default, runs are placed in folders numbered sequentially, beginning with “1”.</p>
-<p>When you wish to execute a Pmetrics run, you must ensure that both of the appropriate Pmetrics data.csv and model.txt files are in the working directory, i.e. the Runs subdirectory of the project directory. The names are supplied as arguments to <code>NPrun</code>, <code>ITrun</code>, and <code>ERRrun</code>. A shorthand notation is to supply the number of a previous run for either the data, model or both files so that you do not have to manually copy them into the working directory.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Using default names data.csv and model.txt</span></span>
-<span><span class="fu"><a href="../reference/NPrun.html">NPrun</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Using custom names</span></span>
-<span><span class="fu">ITrun</span><span class="op">(</span>model <span class="op">=</span> <span class="st">"model1.txt"</span>, data <span class="op">=</span> <span class="st">"mydata.csv"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Grab data from run 1 and use default model.txt</span></span>
-<span><span class="fu"><a href="../reference/NPrun.html">NPrun</a></span><span class="op">(</span>data <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Use model and data from run 2 and continue where run 2 ended</span></span>
-<span><span class="fu"><a href="../reference/NPrun.html">NPrun</a></span><span class="op">(</span>data <span class="op">=</span> <span class="fl">2</span>, model <span class="op">=</span> <span class="fl">2</span>, prior <span class="op">=</span> <span class="fl">2</span>, cycles <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span></code></pre></div>
-</div>
-<p>You can also download sample data and scripts from the <a href="http://lapk.org/pmetrics.php" class="external-link">Pmetrics downloads</a> section of our website. Edit prior versions of model files to make new model files.</p>
 </section></section><section class="level2" data-number="2"><h2 data-number="2" id="loading-results-after-a-completed-run">
 <span class="header-section-number">2</span> Loading results after a completed run<a class="anchor" aria-label="anchor" href="#loading-results-after-a-completed-run"></a>
 </h2>
-<p><span class="r6">R6</span></p>
 <p>After the execution is done, you can load the output into R using <code><a href="../reference/PM_load.html">PM_load()</a></code>. Note the underscore “_” to distinguish this function from the Legacy <code><a href="../reference/PMload.html">PMload()</a></code>. The argument to the function is the run number which you wish to load, corresponding to a folder with the same number in your <strong>Runs</strong> folder (if you made one).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">my_run</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PM_load.html">PM_load</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 </div>
 <p>This creates a <code><a href="../reference/PM_result.html">PM_result()</a></code> object called <code>my_run</code>. Detailed information about the different elements contained in the result object can be accessed via <code><a href="../reference/PM_result.html">?PM_result</a></code> or by typing the result object into the terminal.</p>
 <p>After that, that object can be used to access the different elements of the results, for example:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">exRes</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PM_load.html">PM_load</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">exRes</span><span class="op">$</span><span class="va">final</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span><span class="op">)</span> <span class="co"># see ?plot.PM_final</span></span>
 <span><span class="va">exRes</span><span class="op">$</span><span class="va">op</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span>type <span class="op">=</span> <span class="st">"pop"</span><span class="op">)</span> <span class="co"># see ?plot.PM_op,</span></span>
@@ -216,48 +158,6 @@
 <span>  log <span class="op">=</span> <span class="cn">T</span></span>
 <span><span class="op">)</span> <span class="co"># see ?plot.PM_data</span></span></code></pre></div>
 </div>
-<p><span class="legacy">Legacy</span></p>
-<p>Now the output of IT2B or NPAG needs to be loaded into R, so the next command does this.</p>
-<p><code>PMload(run_number)</code></p>
-<p>Details of these commands and what is loaded are described in the R documentation <code><a href="../reference/PMload.html">?PMload</a></code>. The <strong>run_number</strong> should be included within the parentheses to be appended to the names of loaded R objects, allowing for comparison between runs, e.g. <code>PMload(1)</code>. Finally, at this point other Pmetrics commands can be added to the script to process the data, such as the following.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">final.1</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">cycle.1</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">op.1</span>, type <span class="op">=</span> <span class="st">"pop"</span><span class="op">)</span> <span class="co"># or plot(op.1$pop1)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">op.1</span><span class="op">)</span> <span class="co"># default is to plot posterior predictions for output 1</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">op.1</span>, type <span class="op">=</span> <span class="st">"pop"</span>, resid <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
-</div>
-<p>Of course, the full power of R can be used in scripts to analyze data, but these simple statements serve as examples.</p>
-<p>If you do not use the <code>PMtree</code> structure, we suggest that the R script for a particular project be saved into a folder called “Rscript” or some other meaningful name in the working directory. Folders are not be moved by the batch file. Within the script, number runs sequentially and use comments liberally to distinguish runs, as shown below.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://lapkb.github.io/Pmetrics_rust/">Pmetrics</a></span><span class="op">)</span></span>
-<span><span class="co"># Run 1 - Ka, Kel, V, all subjects</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/getwd.html" class="external-link">setwd</a></span><span class="op">(</span><span class="st">"working directory"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/NPrun.html">NPrun</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># assumes model="model.txt" and data="data.csv"</span></span>
-<span><span class="fu"><a href="../reference/PMload.html">PMload</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span></code></pre></div>
-</div>
-<p>Remember in R that the command <code>example(function)</code> will provide examples for the specified function. Most Pmetrics functions have examples.</p>
-<!-- ## Using Shiny to control Pmetrics -->
-<!-- Shiny is an R package made by the same group who produces Rstudio. While -->
-<!-- you are learning to use Pmetrics, you can use a graphical user interface -->
-<!-- that teaches you how to build code. Currently we have implemented Shiny -->
-<!-- interfaces for NPAG, IT2B and many plots in Pmetrics. -->
-<!-- To use these Shiny interfaces, type `PMcode("x")`, where x is the function -->
-<!-- you wish. Currently you have two choices: "run" and "plot". -->
-<!-- `PMcode("run")` will launch the following dialog window in your default -->
-<!-- browser. As you make your selections, you will see R code generated -->
-<!-- which you can copy back to your script and execute. Simply close the -->
-<!-- browser window when you are finished. -->
-<!-- You can select from an NPAG or IT2B run, and then use the Data, Model, -->
-<!-- and Run tabs to navigate to different options. With a valid Pmetrics -->
-<!-- model and data file loaded, you will see a summary of the model in the -->
-<!-- Current Model window. -->
-<!-- If you use `PMcode("plot")` you will see the dialog window below. It will -->
-<!-- allow you to select various Pmetrics objects that have been already -->
-<!-- loaded with `PMload`, and offer you many plot options, as well as the -->
-<!-- code to generate you selected plot. -->
 </section><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
@@ -347,7 +247,7 @@
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Michael Neely, Julián Otálvaro, Markus Hovd.</p>
+  <p>Developed by Michael Neely, Julián Otálvaro, Markus Hößvd.</p>
 </div>
 
 <div class="pkgdown-footer-right">

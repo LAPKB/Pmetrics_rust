@@ -18,7 +18,7 @@ it prevents common programming errors that can lead to memory leaks and
 crashes. This makes it a more reliable choice for high-performance
 computing tasks. Additionally, Rust has a growing ecosystem of libraries
 and tools that make it easier to work with data and perform complex
-computations. This makes it a more flexible choice for a wide range of
+computations and a more flexible choice for a wide range of
 applications.
 
 ## 2 R6 architecture
@@ -35,12 +35,12 @@ preserving work from one session to another. The format of those files,
 both data and model, will be familiar to long term Pmetrics users.
 
 Data files are generally .csv and the format is detailed in
-[`vignette("data")`](https://lapkb.github.io/Pmetrics_rust/articles/data.md).
-A model can be read from a text file or can be defined directly in R.
-The easiest way to accomplish this is with our model builder app.
-Whether choosing to define models in R, with the builder app, or in a
-.txt file, details can be found in
-[`vignette("models")`](https://lapkb.github.io/Pmetrics_rust/articles/models.md)
+[data](https://lapkb.github.io/Pmetrics_rust/articles/data.md)\]. A
+model can be read from a text file or can be defined directly in R. The
+easiest way to accomplish this is with our model builder app. Whether
+choosing to define models in R, with the builder app, or in a .txt file,
+details can be found in
+[models](https://lapkb.github.io/Pmetrics_rust/articles/models.md).
 
 **Tips for using this guide.**
 
@@ -64,8 +64,8 @@ constitutes your agreement to this provision.
 ## 4 Installation
 
 Pmetrics and all required components will run under Mac (Unix), Windows,
-and Linux. Instructions on obtaining and installing the package are in
-[`vignette("pmetrics")`](https://lapkb.github.io/Pmetrics_rust/articles/pmetrics.md).
+and Linux. Instructions on obtaining and installing the package are
+[here](https://lapkb.github.io/Pmetrics_rust/articles/pmetrics.md).
 
 ## 5 What This Guide Is Not
 

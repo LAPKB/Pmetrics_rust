@@ -6,7 +6,7 @@
 
 - **Julián Otálvaro**. Author.
 
-- **Markus Hovd**. Author.
+- **Markus Hößvd**. Author.
 
 - **Walter Yamada**. Contributor.
 

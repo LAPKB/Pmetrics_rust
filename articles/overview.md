@@ -89,7 +89,7 @@ sim1 <- PM_sim$new(poppar = list(...), model = "model.txt", data = "new.csv")
 ```
 
 See
-[`vignette("simulation")`](https://lapkb.github.io/Pmetrics_rust/articles/simulation.md)
+[simulation](https://lapkb.github.io/Pmetrics_rust/articles/simulation.md)
 for details on specifying `poppar` this way.
 
 For the simulator the results are returned automatically to the object
@@ -164,15 +164,38 @@ and process and plot extracted data.
 Comparison between the current and the Legacy methods are shown for
 education.
 
+| Function                               | R6                         | Legacy            |
+|----------------------------------------|----------------------------|-------------------|
+| Read data file                         | PM_data\$new()             | PMreadMatrix()    |
+| Check data file                        | Embedded in PM_data\$new() | PMcheck()         |
+| Write data file                        | PM_data\$save()            | PMwriteMatrix()   |
+| Convert calendar dates and clock times | Embedded in PM_data\$new() | PMmatrixReltime() |
+| Convert from old USC\\PACK .wrk format | PMwrk2csv()                | PMwrk2csv()       |
+| Convert from NONMEM                    | NM2PM()                    | NM2PM()           |
+
 ### 3.2 Model selection and diagnostics
 
 Comparison between the current and the Legacy methods are shown for
 education.
 
+| Function                      | R6                                    | Legacy              |
+|-------------------------------|---------------------------------------|---------------------|
+| Compare models                | PM_compare(PM_result1, PMresult2,…)   | PMcompare(1, 2, …)  |
+| Plot residuals                | PM_result\$op\$plot(resid = T,…)      | plot(op, resid = T) |
+| Construct VPC, pcVPC, NPDE    | PM_result\$valid() or PM_valid\$new() | makeValid()         |
+| Plot VPC, pcVPC, NPDE         | PM_valid\$plot()                      | plot(PMvalid)       |
+| Stepwise covariate regression | PM_result\$step()                     | PMstep()            |
+
 ### 3.3 Other functions
 
 Comparison between the current and the Legacy methods are shown for
 education.
+
+| Function                         | R6                                                       | Legacy    |
+|----------------------------------|----------------------------------------------------------|-----------|
+| Calculate AUC                    | \$auc() method for PM_result\$op/\$post/\$pop, or PM_sim | makeAUC() |
+| Simulate                         | PM_result\$sim() or PM_sim\$new()                        | SIMrun()  |
+| Probability of target attainment | PM_sim\$pta() or PM_pta\$new()                           | makePTA() |
 
 Again, all functions have extensive help files and examples which can be
 examined in R by using the `help(command)` or `?command` syntax.
