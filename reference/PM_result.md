@@ -236,13 +236,13 @@ AUC generic function based on type
 
 #### Usage
 
-    PM_result$auc(type, ...)
+    PM_result$auc(src, ...)
 
 #### Arguments
 
-- `type`:
+- `src`:
 
-  Type of AUC based on class of object
+  Source of AUC, one of "op", "pop", "post", or "sim"
 
 - `...`:
 

@@ -28,8 +28,10 @@ plot(x, ...)
 ## Examples
 
 ``` r
+if (FALSE) { # \dontrun{
 NPex$op$data %>%
 dplyr::filter(pred > 5) %>%
 dplyr::filter(pred < 10) %>%
 plot()
+} # }
 ```

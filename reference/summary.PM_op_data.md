@@ -28,9 +28,10 @@ summary(object, ...)
 ## Examples
 
 ``` r
+if (FALSE) { # \dontrun{
 NPex$op$data %>%
 dplyr::filter(pred > 5) %>%
 dplyr::filter(pred < 10) %>%
 summary()
-#> Error in library(tidyverse): there is no package called 'tidyverse'
+} # }
 ```
