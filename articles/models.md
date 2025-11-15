@@ -1,0 +1,1116 @@
+# Models
+
+## 1 Introduction
+
+[`PM_model`](https://lapkb.github.io/Pmetrics/reference/PM_model.html)
+objects are one of two fundamental objects in Pmetrics, along with
+[`PM_data`](https://lapkb.github.io/Pmetrics/reference/PM_data.html)
+objects. Defining a `PM_model` allows for fitting it to the data via the
+`$fit()` method to conduct a population analysis, i.e. estimating the
+probability distribution of model equation parameter values in the
+population.
+
+## 2 Creating Models
+
+There are three pathways to creating models in Pmetrics.
+
+- Use the Pmetrics Model Builder app
+- Write a model list in R
+- Load an existing model text file
+
+Each of these use sections to define the model. In the app, the sections
+correspond to tabs. In the list, they are named elements. In the model
+file, they are code blocks delimited by “#” and the name of the block.
+The sections are largely the same across the three model pathways, and
+we’ll cover the details in this document.
+
+### 2.1 Create a model with the app
+
+To launch the app, type the following into your console:
+
+``` r
+build_model()
+```
+
+You can supply a `PM_data` and/or a `PM_model` as optional arguments to
+the function, e.g. `PM_model$new(dataEx)` or `PM_model$new(modEx)` or
+even `PM_model$new(dataEx, modEx)`. The order of data and/or model
+arguments doesn’t matter. Pmetrics can figure out which is which.
+
+### 2.2 Create a model as a list in R
+
+You can write a Pmetrics model list in R. Blocks in the model files
+which were delimited with the “#” character become elements of the list
+in R6. You can also generate a model in the app and copy it as a list to
+R which can be used in `PM_model$new(<copied_list>)`. Once in R,
+`PM_model` list objects can be updated using the `$update()`
+[method](#update-model).
+
+The list elements are the building blocks for the model. Building blocks
+are of two types:
+
+- **List model block elements** define *primary parameters*,
+  *covariates*, and *error models*. These portions of the model are
+  lists of specific creator functions and no additional R code is
+  permissible. They take this form:
+
+``` r
+block_name = list( 
+    var1 = creator(),   
+    var2 = creator()
+) # close the list
+```
+
+Note the comma separating the creator functions, `list(` to open the
+list and `)` to close the list. Names are case-insensitive and are
+converted to lowercase for Rust.
+
+- **Function model block elements** define the other parts of the model,
+  including *secondary (global) equations*, *model equations*
+  (e.g. ODEs), *lag time*, *bioavailability*, *initial conditions*, and
+  *outputs*. These parts of the model are defined as R functions without
+  arguments, but whose body contains any permissible R code.
+
+``` r
+block_name = function() { 
+
+          # any valid R code 
+          # can use primary or secondary parameters and covariates
+          # lines are not separated by commas
+      
+} # end function and block
+```
+
+Note the absence of arguments between the `()`, the opening curly brace
+`{` to start the function body and the closing curly brace “`}`” to end
+the body. Again, all R code will be converted to lowercase prior to
+translation into Rust.
+
+**Important:** All models must have `pri`, `eqn`, `out`, and `err`
+blocks.
+
+### 2.3 Model Files
+
+The format of the .txt model file has been mostly unchanged since
+Pmetrics 0.4. You can write the file by hand, or use the app to create a
+model and then save it to a file. Once you have a file, it can be loaded
+in to R with `PM_model$new("file")`.
+
+``` r
+mod1 <- PM_model$new("model.txt") 
+# assumes model.txt is in working directory
+# check with list.files() and/or getwd()
+```
+
+Saved models are only text files. You can write files directly yourself,
+although it is easier and more stable to use the model building app. We
+will review the format of the files in detail.
+
+**Naming your model files.** The default model file name is “model.txt,”
+but you can call them whatever you wish. When you use a model file in a
+`$fit()` method, at the end of the run, your original model file will be
+left where it is, but a copy called “genmodel.txt” will be in the
+/inputs subfolder of the run folder.
+
+**Structure of model files.** The model file is a text file with up to
+11 blocks, each marked by “#” followed by a header tag. For each header,
+only the capital letters are required for recognition by Pmetrics. The
+blocks can be in any order, and header names are case-insensitive
+(i.e. the capitalization here is just to show which letters are
+required). We include a [complete example](#completeEx).
+
+Comments: You can insert comments into your model text file by starting
+a line with a capital “C” followed by a space. These lines will be
+removed/ignored in the final Rust code.
+
+## 3 Model Blocks
+
+*Note*: The model building app has a unique [Model library](#mb-lib)
+section not found in model files or lists.
+
+Blocks common to all the model building pathways include the following.
+The capital letters are the shorthand way to designate the blocks in the
+model text files or in the R list format.
+
+- [PRImary variables](#mb-pri)
+- [COVariates](#mb-cov)
+- [SECcondary variables](#mb-sec)
+- [INItial conditions](#mb-ini)
+- [FA (bioavailability)](#mb-fa)
+- [LAG time](#mb-lag)
+- [TEMplate](#mb-tem)
+- [EQuatioNs](#mb-eqn)
+- [OUTputs](#mb-out)
+- ERRors
+
+### 3.1 Model Library
+
+![](Images/model_builder/front.png)
+
+Here you can choose from pre-existing models, either which you have
+created yourself and load with the Previous Model dialogue, or from the
+Pmetrics Model Library. Use the filters and description search to help
+select the model you want. Matching models will update in the box at the
+bottom. If you select one, you’ll see a model snapshot on the right.
+
+In the snapshots, B is for bolus inputs, R is for Rate infusions
+(e.g. intravenous infusions), and Y is for observations. Arrows indicate
+the flow of drug. The grey compartment 0 is the environment.
+
+Once you choose a model, hit the “Select” button at the bottom to
+populate remaining model components. Similarly, if you load a Previous
+Model, model components will be appropriately populated.
+
+### 3.2 PRImary
+
+#### 3.2.1 App
+
+![](Images/model_builder/primary.png)
+
+In this tab, you can choose the number and names of the primary
+parameters. Some variable names are [reserved](#reserved) for use by
+Pmetrics and cannot be used as primary variable names.
+
+These are the parameters for which value probability distributions will
+be estimated. You can specify initial values as ranges or mean/SD. The
+mean is the mid point of a range and the SD is 1/6 of the range, i.e. 3
+SD above and below the mean.
+
+In Legacy Pmetrics it was possible to specify parameters as either fixed
+to a known value in the entire population (constant) or fixed to some
+unknown value in the population (fixed but unknown). To make parameters
+constant in Pmetrics ≥ 3.0, simply include the value in either the
+\#SECondary block or in the equations directly. Because the Legacy
+optimization process was very suboptimal and expensive for fixed but
+unknown parameters, we have removed it in Pmetrics ≥ 3.0. To accomplish
+this, we suggest including such a parameter as a typical random
+parameter, and then fixing it to a constant value after inspecting the
+results of a satisfactory run when the parameter was random.
+
+In the bottom you see the Model Diagram and the Model List. These
+dynamically build as you complete the Model Components.
+
+#### 3.2.2 List
+
+Primary variables are defined in a
+[`list()`](https://rdrr.io/r/base/list.html). The list is named “pri”,
+and is comprised of named elements which are the parameters, and the
+creator function to define each parameter, one parameter to a line.
+
+The two creator functions for primary parameters are `ab` and `msd`.
+Choose one for each parameter. The first defines the absolute search
+space for that parameter for NPAG/NPOD, i.e., the range. `msd` is the
+companion function that specifies the range using a mean and standard
+deviation (SD), assuming the mean is the midpoint of the range, and the
+SD equals 1/6th of the range, i.3., there are 3 SD above and below the
+mean, covering 99.7% of the prior distribution.
+
+``` r
+mod <- PM_model$new(
+  pri = list(
+    Ke = ab(0, 5), # mean will be 2.5, SD = 5/6 = 0.83
+    V = msd(100, 20) # range will be 100 ± 3*20, i.e. [40, 160]
+  )
+)
+```
+
+#### 3.2.3 File
+
+Primary variables are a list of variable names, one name to a line. On
+each line, following the variable name, is the range for the parameter
+that defines the search space. These ranges behave slightly differently
+for NPAG and the simulator.
+
+- For all engines, the format of the limits is *min, max*.
+
+- For **NPAG**, when *min, max* limits are specified, they are absolute,
+  i.e. the algorithm will not search outside this range.
+
+&nbsp;
+
+- The **simulator** will ignore the ranges with the default value of
+  NULL for the `limits` argument to
+  [`PM_sim`](https://lapkb.github.io/Pmetrics/reference/PM_sim.html). If
+  the simulator `limits` argument is set to NA, it will mean that these
+  ranges will be used as the limits to truncate the simulation (see
+  [*Simulator
+  Runs*](https://lapkb.github.io/Pmetrics_rust/articles/%5Cl)).
+
+Example:
+
+\#Pri  
+KE, 0, 5  
+V, 0.01, 100  
+KA, 0, 5  
+
+### 3.3 COVariates
+
+Covariates are subject-specific data, such as body weight, contained in
+the data. The covariate names, which are the column names in the data
+file or `PM_data` object, must be declared if used in the model object.
+Once declared, they can be used in secondary variable and differential
+equations. The names should be the same as in the data file.
+
+By default, missing covariate values are linearly interpolated between
+existing values, or carried forward if the first value is the only
+non-missing entry. However, you can suppress interpolation and carry
+forward the previous value in a piece-wise constant fashion, depending
+on the way you define the model as described below.
+
+#### 3.3.1 App
+
+![](Images/model_builder/covariates.png)
+
+If you launch the Model Builder with a `PM_data` object as an argument,
+the covariate tab will be pre-populated with the covariates in the data
+file, as above. The same is true if you include a `PM_model` object as
+an argument to `PM_model$new()`. If you include both, the covariates in
+the `PM_data` object will take precedence. You can select any of them to
+make them piece-wise constant, i.e. the value is held constant between
+measurements. If left unchecked, covariate values will be linearly
+interpolated between measurements.
+
+#### 3.3.2 List
+
+The covariate element is a vector whose names are the same as the
+covariates in the data file, and whose values are the
+[`interp`](https://lapkb.github.io/Pmetrics/reference/interp.html)
+creator function to declare how each covariate is interpolated between
+entries in the data.
+
+The default argument for `interp` is “lm” which means that values will
+be linearly interpolated between entries, like the R linear model
+function [`lm`](https://rdrr.io/pkg/stats/man/lm.html). The alternative
+is “none”, which holds the covariate value the same as the previous
+entry until it changes, i.e., a carry-forward strategy.
+
+``` r
+mod <- PM_model$new(
+  pri = list(...),
+  cov = list(
+      wt = interp(),
+      age = interp("none")
+    )
+)
+```
+
+Here, `wt` will be linearly interpolated and `age` will be piece-wise
+constant, i.e. held constant until the next entry in the data file.
+
+#### 3.3.3 File
+
+List the covariates by name, one per line in the \#COV block. To make a
+covariate piece-wise constant, include an exclamation point (!) in the
+declaration line.
+
+**Note** that any covariate relationship to any parameter may be
+described as the user wishes by mathematical equations and R code,
+allowing for exploration of complex, non-linear, time-dependent, and/or
+conditional relationships. These equations are included in any of the
+blocks which are functions (SEC, EQN, INI, FA, LAG, OUT).
+
+Example:
+
+\#Cov  
+wt  
+cyp  
+IC!
+
+Here, IC will be piece-wise constant and the other two will be linearly
+interpolated for missing values.
+
+### 3.4 Secondary
+
+Secondary variables are those that are defined by equations that are
+combinations of primary, covariates, and other secondary variables.
+Pmetrics does *NOT* generate distributions for the values of secondary
+variables. They are only used internally to define the model. Variables
+declared in the secondary block are ***global***, i.e., they are
+available to all other blocks. This is in contrast to variables declared
+within other function blocks (INI, FA, LAG, OUT), which are only
+available within the block they are declared.
+
+#### 3.4.1 App
+
+![](Images/model_builder/secondary.png)
+
+If using secondary variables, define them first within this tab.
+Equation syntax for Secondary equations must be R. Each expression must
+be on a new line and contain only variables which have been previously
+defined in the Primary, Covariate, or Secondary blocks.
+
+The image shows examples of secondary variable declarations without
+conditions. Here are two examples of conditional secondary variables
+chosen on the basis of sex. The primary variables are Vm, Vf, CLm, and
+CLf.
+
+    V = Vm
+    if (sex == 1) V = Vf
+
+    V = Vm
+    CL = CLm
+    if(sex == 1) {
+      V = Vf
+      CL = CLf
+    }
+
+#### 3.4.2 List
+
+Specify each variable equation as a list of unnamed character elements
+in the same way as for the app. In the example below, V0 is the primary
+parameter which will be estimated, but internally, the model uses V as
+V0\*wt, unless age is \>18, in which case weight is capped at 75 kg.
+It’s the same for CL0. Note that the conditional statement is not named.
+
+``` r
+mod <- PM_model$new(
+    pri = list(
+      CL0 = ab(0, 5),
+      V0 = msd(10, 3)
+    ),
+    cov = list(
+      wt = interp(),
+      age = interp()
+    ),
+    sec = function(){
+      V = V0*wt
+      if (age >18) {V = V0 * 75}
+      CL = CL0 * wt
+    }
+) # end of $new()
+```
+
+#### 3.4.3 File
+
+Format is the same as for the app.
+
+Example:
+
+\#Sec  
+CL = Ke \* V \* wt\*\*0.75  
+if (cyp \> 1) {CL = CL \* cyp}
+
+### 3.5 INItial conditions
+
+By default, all model compartments have zero amounts at time 0. However,
+you can change the default initial condition of any compartment from 0
+to something else. It can be an fixed value, primary or secondary
+variables, or covariate(s), or equations/conditionals based on these.
+
+#### 3.5.1 App
+
+We’ll discuss more about the interface in the section on [lag
+times](#mb-lag).
+
+#### 3.5.2 List
+
+Initial conditions can be changed as a list called “ini”, comprised of
+unnamed character elements. Each line of the vector specifies the
+compartment amount as “X\[.\] = expression”, where “.” is the
+compartment number. Primary and secondary variables and covariates may
+be used in the expression, as can conditional statements in Fortran
+code. An “&” continuation prefix is not necessary in this block for any
+statement, although if present, will be ignored.
+
+``` r
+mod <- PM_model$new(
+    pri = list(
+      Ke = ab(0, 5),
+      V = msd(100, 30),
+      IC3 = ab(0, 1000)
+    ),
+    cov = list(
+      wt = interp(),
+      age = interp(),
+      IC2 = interp("none")
+    ),
+    ini = function(){
+      X[1] = IC2*V
+      X[3] = IC3
+    }
+) # end of $new()
+```
+
+In the example above, IC2 is a covariate with the measured trough
+concentration prior to an observed dose and IC3 is a fitted primary
+parameter specifying an initial amount in unobserved compartment 3.
+
+In the first case, the initial condition for compartment 2 becomes the
+value of the IC2 covariate (defined in `cov` list) multiplied by the
+current estimate of V during each iteration. This is useful when a
+subject has been taking a drug as an outpatient, and comes in to the lab
+for PK sampling, with measurement of a concentration immediately prior
+to a witnessed dose, which is in turn followed by more sampling. In this
+case, IC2 or any other covariate can be set to the initial measured
+concentration, and if V is the volume of compartment 2, the initial
+condition (amount) in compartment 2 will now be set to the measured
+concentration of drug multiplied by the estimated volume for each
+iteration until convergence.
+
+In the second case, the initial condition for compartment 3 becomes
+another variable, IC3 defined in the `pri` list, to fit in the model,
+given the observed data.
+
+#### 3.5.3 File
+
+The same example as for the list above is shown below in the format for
+the file.
+
+\#Ini  
+X\[2\] = IC\*V  
+X\[3\] = IC3  
+
+### 3.6 FA (bioavailability)
+
+In this tab you can change the default bioavailability of any bolus
+input from 1 to something else. It can be an equation, primary or
+secondary variable, or covariate.
+
+#### 3.6.1 App
+
+We’ll discuss more about the interface in the section on [lag
+times](#mb-lag).
+
+#### 3.6.2 List
+
+Bioavailability for any bolus input can be changed from the default
+value of 1. Use a list called “fa”, comprised of unnamed character
+elements, where each line is of the form “FA\[.\] = expression”, and “.”
+is the input number. Primary and secondary variables and covariates may
+be used in the expression, as can conditional statements.
+
+``` r
+mod <- PM_model$new(
+    pri = list(
+      Ke = ab(0, 5),
+      V = msd(100, 30),
+      FA1 = ab(0, 1)
+    ),
+    fa = function(){
+      FA[1] = FA1
+    }
+)
+```
+
+#### 3.6.3 File
+
+The same example as for the list above is shown below in the format for
+the file.
+
+\#Fa  
+FA\[1\] = FA1
+
+### 3.7 LAG time
+
+The lag time is a delay in absorption for a bolus input.
+
+#### 3.7.1 App
+
+![](Images/model_builder/lag.png)
+
+You can change the default delay in absorption of any bolus input from 0
+to something else. It can be an equation, primary or secondary variable,
+or covariate. If you wish to use any of the latter three, select them
+from the drop down and the equation will pre-populate, as shown in the
+image. You can edit the equation or write your own equation. This is
+true for initial conditions and bioavailability in their tabs.
+
+#### 3.7.2 List
+
+Use a list called “lag”, comprised of unnamed character elements, each
+of the form “LAG\[.\] = expression”, where “.” is the input number.
+Primary and secondary variables and covariates may be used in the
+expression, as can conditional statements.
+
+``` r
+mod <- PM_model$new(
+    pri = list(
+      Ke = ab(0, 5),
+      V = msd(100, 30),
+      lag1 = ab(0, 4)
+    ),
+    lag = function(){
+      LAG[1] = lag1
+    }
+)
+```
+
+#### 3.7.3 File
+
+The same example as for the list above is shown below in the format for
+the file.
+
+\#Lag  
+LAG\[1\] = Tlag1
+
+### 3.8 EQuatioNs
+
+These are the equations that define the structural model, i.e., the
+mathematical expressions that relate input (dose) to output
+(measurements). Pmetrics has a library of models with algebraic
+solutions and models can also use differential equations in a format
+compatible with R. Even algebraic models will contain differential
+equations for purposes of understanding and plotting the model, but
+algebraic models from the library include a token which tells Pmetrics
+how to choose the correct model. Details below.
+
+#### 3.8.1 App
+
+![](Images/model_builder/eqn.png)
+
+If you have not loaded a prior model file or selected a model from the
+library, you can write the differential equations here. The model
+diagram will update as information in the equations becomes available.
+
+Use `dX[i]` for change in compartment amounts, where i is the
+compartment number, e.g. dX\[1\] or dX\[2\]. Compartment amounts are
+referred to as `X[i]`, e.g. X\[1\] or X\[2\]. Use `BOLUS[j]` or `B[j]`
+for bolus input j and `RATEIV[k]` or `R[k]` for infusion k. The indices
+j and k correspond to the `INPUT` column in the data file, which is
+omitted and assumed to be 1 for all doses for the most common scenario
+of modeling one drug input. The duration of the infusion and total dose
+is defined in the data. The `DUR` column in the data determines whether
+a dose is treated as a BOLUS (DUR = 0) or RATEIV (DUR \> 0). Any
+variable declared in `PRI`, `COV`, or `SEC` may be used in your
+equations.
+
+**Note:** If you change the equations of an algebraic model loaded from
+the library, you will receive a warning in the app that you are forcing
+use of ODE solvers, and your model list (and file) will no longer have
+the algebraic token. Beware also of changing the parameter names, as the
+algebraic models must use specifically named parameters. However, it is
+perfectly acceptable to add parameters or even change primary parameters
+as long as the original appear in the secondary block. For example, if
+you wish to make volume dependent on weight, change `V` in the Primary
+section to something like `V0` with appropriate range or mean/SD, and
+add `V = V0 * wt` to your Secondary section, assuming you have a
+covariate named “wt”. Because `V` is still defined, Pmetrics will know
+how to solve the algebraic model.
+
+#### 3.8.2 List
+
+Specify a model as a list called “eqn”, comprised of unnamed character
+elements, with each element an ordinary differential equation in the
+same R format as for the app. Additional equations can be included.
+
+``` r
+mod <- PM_model$new(
+    pri = list(
+      Ka = ab(0, 5),
+      Ke = ab(0, 5),
+      V = msd(100, 30),
+      Kcp = ab(0, 5),
+      Kpc = ab(0, 5)
+    ),
+    eqn = function(){
+      ktotal = Ke + Kcp # local variable, not available outside eqn block
+      dX[1] = B[1] - Ka * X[1]
+      dX[2] = R[1] + Ka * X[1] - (ktotal) * X[2] + Kpc * X[3]
+      dX[3] = Kcp * X[2] - Kpc * X[3]
+    }
+)
+```
+
+To specify models from the library, first ensure the correct library
+model name by using the
+[`model_lib`](https://lapkb.github.io/Pmetrics/reference/model_lib.html)
+function. Also, ensure that the variable names in the library are
+defined somewhere in the model (mostly in the `PRI` block), and
+similarly that `OUT` equations are correct.
+
+``` r
+mod <- PM_model$new(
+    pri = list( # parameter names match those listed in model_lib(), except V0
+      Ka = ab(0, 5),
+      Ke = ab(0, 5),
+      V0 = msd(10, 3),
+      Kcp = ab(0, 5),
+      Kpc = ab(0, 5)
+    ),
+    cov = list(
+        wt = interp()
+    ),
+    sec = function(){
+        V = V0 * wt # here we define the last parameter, V, found in model_lib() for this model
+    }
+    eqn = function(){
+        "three_comp_bolus" # name acquired from model_lib()
+    }, 
+    out = function(){
+        Y[1] = X[2]/V # correct compartment (2) identified as the output
+    },
+    err = list(
+        proportional(1, c(1, 0.1, 0, 0))
+    )
+)
+```
+
+#### 3.8.3 File
+
+This block was formerly called “#DIF”, and Pmetrics will recognize this
+header, but we encourage you to adopt the more general \#EQN block name.
+
+Example:
+
+\#EQN  
+ktotal = Ke + KCP  
+dX\[1\] = B\[1\] -KA\*X\[1\]  
+dX\[2\] = R\[1\] + KA\*X\[1\] - (ktotal)\*X\[2\] + KPC\*X\[3\]  
+dX\[3\] = KCP\*X\[2\] - KPC\*X\[3\]
+
+***Note***: Pmetrics no longer recognizes the old Fortran format of
+XP(1), which is dX\[1\], and X(1), which is X\[1\].
+
+### 3.9 Outputs
+
+The outputs in Pmetrics are the values in the `OUT` column of the data
+that you are trying to predict. In the model objects, each output is
+referred to as `Y[.]`, where “.” is the number of the output and the
+same as the corresponding `OUTEQ` in the data. Outputs can be defined as
+mathematical combinations of compartment amounts (`X[.]`), primary
+and/or secondary parameters, or covariates.
+
+Output equations are in R format. If they include conditional
+statements, these should follow R’s `if(){}` convention.
+
+Because outputs are measurements, they have an associated error in that
+measurement. Pmetrics takes this into account by partitioning model
+residual prediction error into a fixed portion defined by the assay
+error, which may be inflated by an additive model error component
+$\lambda$ or a proportional component $\gamma$, which reflect additional
+noise and model misspecification. The remaining error is random.
+
+In the app and list, the error is defined with each output. In the file,
+the error block is distinct from but correlates with the output block.
+
+#### 3.9.1 App
+
+![](Images/model_builder/output.png)
+
+On this tab, you can choose the number of output equations and define
+the equation for each output. You do not need to specify “Y\[.\] =” in
+the equations. Simply include the right side of the equation in the
+field.
+
+Include the **Assay Error** polynomial coefficients for each output
+equation. The four coefficients estimate SD according to the folowing
+equation:
+$C0 + C1*\lbrack obs\rbrack + C2*\lbrack obs\rbrack^{2} + C3*\lbrack obs\rbrack^{3}$
+and $\lbrack obs\rbrack$ is the observation. The values for the
+coefficients should ideally come from the analytic lab in the form of
+inter-run standard deviations or coefficients of variation at standard
+concentrations. You can use the Pmetrics function
+[`makeErrorPoly()`](https://lapkb.github.io/Pmetrics_rust/reference/makeErrorPoly.md)
+to choose the best set of coefficients that fit the data from the
+laboratory. Alternatively, you can use a generic set of coefficients. We
+recommend that as a start, $C0$ be set to half of the lowest
+concentration in the dataset and $C1$ be set to 0.1. $C2$ and $C3$ can
+be 0.
+
+If you check the *Use Always?* box, the model coefficients will be used
+regardless of what is in the data file. Leaving it unchecked, which is
+the default, means that coefficients in the data file will be used if
+present, and the ones here in the model definition will be used only if
+none are available for an observation in the data.
+
+Choose your **Model Error** model from the drop down. The additive
+$\lambda$ and proportional $\gamma$ models both have fixed options. If
+not fixed, the parameter will be estimated, starting from the number in
+the *Value* field. If fixed, it will be held constant at the number in
+the *Value* field.
+
+The proportional model weights each observation by $1/(\gamma*SD)^{2}$,
+where $\gamma$ is either fixed or estimated. The additive model weights
+each observation by $1/(\lambda + SD)^{2}$, where $\lambda$ is either
+fixed or estimated. The combination model uses
+$1/\left( (\gamma*SD)^{2} + (\lambda + SD)^{2} \right)$.
+
+In the proportional model, $\gamma$ is a scalar on assay SD. In general,
+well-designed and executed studies and models with low mis-specification
+will have data with $\gamma$ values approaching 1. Values \<1 suggest
+over-inflated assay noise. Poor quality, noisy data will result in
+$\gamma$ of 5 or more. A good starting value for $\gamma$ is usually 5,
+and sometimes 10 early in model development if data are particularly
+complex or noisy.
+
+In the additive model, $\lambda$ is additive to assay SD. In general,
+well-designed and executed studies and models with low mis-specification
+will have data with $\lambda$ values approaching 0. Values of 0 may
+suggest over inflated assay noise. Poor quality, noisy data will result
+in $\lambda$ of $5*C0$ or more. A good starting value for $\lambda$ is
+usually $3*C0$. Note, that $C0$ should generally not be 0, as it
+represents machine noise (e.g. HPLC or mass spectrometer) that is always
+present.
+
+#### 3.9.2 List
+
+The `out` list is a series of nested lists. The outermost list groups
+all the outputs, which are themselves lists named as `Y1`, `Y2`, etc.
+Each of these output lists contains the value of the equation and the
+error model. Within the error model for that output, is the last list
+comprising model and assay error specifications. In the examples below,
+we build this nested list structure gradually to make it more clear.
+
+``` r
+out = list(
+  Y1 = list(...)
+)
+```
+
+The output equation is a character vector named “val” followed by an
+error list.
+
+``` r
+out = list(
+  Y1 = list(
+    val = "X[1]/V",
+    err = list(...)
+  )
+)
+```
+
+The error model for an output equation has two elements. The first is
+the `model` error, which can be one of two functions: `proportional` for
+$\gamma$ or `additive` for $\lambda$. The arguments to these functions
+are a number and optionally `fixed`, which defaults to `FALSE`. If
+`fixed` is `FALSE`, the number serves as the starting estimate for the
+model error. If `fixed` is `TRUE`, the number serves as the model error,
+with no estimation. Note that you can only fix the additive model
+currently to zero.
+
+The second element is the `assay` error model. It is a function
+`errorPoly(coeffs, constant = FALSE)`. The first argument `coeff` is the
+vector of 4 numbers that defines a polynomial equation to permit
+calculation of the standard deviation of an observation, based on the
+noise of the assay. The second argument `constant` is `FALSE` by
+default, which means that coefficients in the data file will be used if
+present, and the ones here in the model definition will be used only if
+none are available for an observation in the data. If `constant = TRUE`,
+the model coefficients will be used regardless of what is in the data
+file.
+
+``` r
+out = list(
+  Y1 = list(
+    val = "X(1)/V",
+    err = list(
+      model = proportional(1),
+      assay = errorPoly(c(0.15, 0.1, 0, 0))
+    )
+  )
+)
+```
+
+``` r
+out = list(
+  Y1 = list(
+    val = "X(1)/V",
+    err = list(
+      model = additive(1, fixed = TRUE)
+      assay = errorPoly(c(0.05, 0.1, 0, 0), constant = TRUE)
+    )
+  )
+)
+```
+
+More complete examples.
+
+``` r
+mod <- PM_model$new(
+  list(
+    pri = list(
+      Ke = ab(0, 5),
+      V = msd(100, 30),
+    ),
+    out = list(
+      y1 = list(
+        val = "X(1)/V",
+        err = list(
+          model = proportional(5),
+          assay = errorPoly(c(0.05, 0.1, 0, 0))
+        )
+      )
+    )
+  )
+)
+
+mod2 <- PM_model$new(
+  list(
+    pri = list(
+      kin = ab(0, 5),
+      kout = ab(0, 5),
+      tpd = ab(0, 5),
+      V = msd(100, 30),
+    ),
+    sec = c(
+      "RES = B(1) * KIN/(KIN-KOUT) * (EXP(-KOUT*TPD)-EXP(-KIN*TPD))"
+    ),
+    out = list(
+      y1 = list(
+        val = "RES/V",
+        err = list(
+          model = combination(0.4, 3) #additive, proportional
+          assay = errorPoly(c(0.3, 0.15, 0, 0))
+        )
+      )
+    )
+  )
+)
+```
+
+This last example is known as the Bateman equation for a model with
+linear absorption (KIN) into and elimination (KOUT) from a central
+compartment, and a time post-dose (TPD) or lag time. Here B(1) is the
+oral bolus dosing vector for drug 1, and V is the volume of the central
+compartment.
+
+#### 3.9.3 File
+
+Outputs are of the form Y\[.\] = expression, where “.” is the output
+equation number. Primary and secondary variables and covariates may be
+used in the expression, as can conditional statements in Fortran code.
+An “&” continuation prefix is not necessary in this block for any
+statement, although if present, will be ignored. **There can be a
+maximum of 6 outputs.** They are referred to as Y\[1\], Y\[2\], etc.
+These equations may also define a model explicitly as a function of
+primary and secondary variables and covariates.
+
+As mentioned previously, in the file method of model definition, assay
+and model error are defined in a separate [\#Err](#err) block.
+
+Examples:
+
+\#Out  
+Y\[1\] = X\[2\]/V
+
+Again, Pmetrics will recognize the older format Y(1), which is Y\[1\],
+but users are encouraged to adopt the newer format.
+
+Here’s an example of an explicit model defined in the output and not the
+equation block.
+
+\#OUT  
+
+RES = BOLUS\[1\] \* KIN/(KIN-KOUT) \* (EXP(-KOUT\*TPD)-EXP(-KIN\*TPD))  
+Y\[1\] = RES/VD
+
+### 3.10 Error
+
+#### 3.10.1 App, List
+
+The error section in the app and list forms of model definitions is
+included with the outputs.
+
+#### 3.10.2 File
+
+Unlike the R6 model builder app or model list, the error block in the
+file is separated from the output block. This is to maintain backward
+compatibility with Legacy Pmetrics.
+
+To specify the model in this block, the first line is either L=number or
+G=number for a $\lambda$ or $\gamma$ error model. The number is the
+starting value for $\lambda$ or $\gamma$. If you include an exclamation
+point (!) in the declaration, then $\lambda$ or $\gamma$ will be fixed
+and not estimated. Recall that you can only fix $\lambda$ currently to
+zero.
+
+The next line(s) contain the values for the assay error polynomial
+coefficients: $C0$, $C1$, $C2$, and $C3$, separated by commas. There
+should be one line of coefficients for each output equation. By default
+Pmetrics will use values for these coefficients found in the data file.
+If none are present or if the model declaration line contains an
+exclamation point (!) the values here will be used.
+
+Example 1: estimated $\lambda$, starting at 0.4, one output, use data
+file coefficients but if missing, use 0.1,0.1,0,0.
+
+\#Err  
+L=0.4  
+0.1,0.1,0,0  
+
+Example 2: fixed $\gamma$ of 2, two outputs, use data file coefficients
+but if missing, use 0.1,0.1,0,0 for the first output, but use 0.3, 0.1,
+0, 0 for output 2 regardless of what is in the data file.
+
+\#Err  
+G=2!  
+0.1,0.1,0,0  
+0.3,0.1,0,0!  
+
+### 3.11 Extra
+
+#### 3.11.1 App, List
+
+This block is not currently implemented in either the app or list forms.
+
+#### 3.11.2 File
+
+This block will be for advanced Rust programmers only who wish to
+include additional code in the model. It is not yet implemented.
+
+### 3.12 Complete File Example
+
+Here is a complete example of a model file, as of Pmetrics version 3.0
+and higher:
+
+\#Pri  
+KE, 0, 5  
+V0, 0.1, 100  
+KA, 0, 5  
+Lag1, 0, 3  
+
+\#Cov  
+wt  
+C this weight is in kg  
+
+\#Sec  
+V = V0\*wt  
+
+\#Lag  
+LAG\[1\] = Tlag1
+
+\#Eqn  
+two_comp_bolus  
+
+\#Out  
+Y\[1\] = X\[2\]/V  
+
+\#Err  
+L=0.4  
+0.1, 0.1, 0, 0  
+
+*Notes*:
+
+The value of “two_comp_bolus” in the \#Eqn block tells Pmetrics to use
+the algebraic solution for the model. The \#Pri block contains the
+primary parameters and their initial ranges, which are the only
+parameters that will be estimated. The \#Cov block contains the
+covariate names. The \#Sec block contains the global secondary equations
+used to incorporate the covariate “wt” in the model definition. The
+\#Lag block contains the lag time for the bolus input. The \#Out block
+contains the output equation. The relevant compartment number that
+contains the amount of drug, 2, is obtained by looking at
+[`model_lib()`](https://lapkb.github.io/Pmetrics_rust/reference/model_lib.md)
+to see which compartment is the central, so that it can be divided by
+`V` to obtain concentration. The \#Err block contains the model error
+structure (lambda, additive) with a starting value of 0.4, and assay
+error coefficients of 0.1, 0.1, 0, and 0.
+
+If you build the same algebraic model in the app by selecting it from
+the library, and save the file, Pmetrics will write the \#EQN blocks for
+you.
+
+The comment line “C this weight is in kg” will be ignored.
+
+## 4 Saving and copying models from the app
+
+![](Images/model_builder/output2.png)
+
+The Model List tab in the bottom window of the app shows the List form
+of the model. You can see it develop as you complete components. Once
+the model is finished, you can use one or both of the buttons at the
+bottom to copy or save the model.
+
+Choosing *Copy* will put the code in you clipboard and you can paste it
+into R. It will include `PM_model$new(...)`, so you should add code such
+as `mod1 <-` to your R script, and then paste. This will entirely define
+`mod1` as a `PM_model` equivalent to what you built in the app.
+
+Choosing *Save* in the app will write a file named “model.txt” to your
+current working directory in R that contains all the code necessary to
+define the same model as you build in the app. Be aware that if there is
+another file named “model.txt” in your working directory, it will be
+overwritten.
+
+While incomplete models can be copied, a model can only be saved when it
+is complete. It is necessary for you to at least open relevant
+components to ensure that all fields are finalized in the Model List
+before you can save it.
+
+## 5 Updating models
+
+### 5.1 App
+
+You can update an existing model in one of two ways in the app:
+
+- Pass the `PM_model` object to the app as an argument to
+  [`build_model()`](https://lapkb.github.io/Pmetrics_rust/reference/build_model.md),
+  for example, `build_model(NPex$model)`. Then, edit the appropriate
+  fields in the app. Save the model as a new model and/or copy it
+  into R. Note that the app saves all models as “model.txt” so be sure
+  not to overwrite your old model if you wish to keep it.
+- Load a previously saved model file using the dialog button in the app
+  and proceed as for the first option above.
+
+### 5.2 List
+
+Because models are loaded as memory items in R6 Pmetrics, they can be
+modified in R without having to edit text files. This function is
+accessed via the `$update()` method for `PM_model` objects.
+
+All R6 objects are mini-environments, so direct copies of an R6
+environment are in the same environment and changes to one will change
+them all. This means the following code will likely not work as
+intended.
+
+``` r
+mod2 <- mod1
+mod2$update(...)
+```
+
+When *mod2* is updated, *mod1* will update as they are in the same
+environment. The way to create an independent copy of an R6 object,
+which does not share the same environment, is to use the `$clone()`
+method available for all R6 objects.
+
+``` r
+mod2 <- mod1$clone()
+mod2$update(...)
+```
+
+Now changes to mod2 do not propagate to mod1.
+
+To update a model, simply supply the list items you wish to change with
+the new values.
+
+``` r
+
+mod2$update(
+  list(
+    pri = list(
+      Ke = ab(1, 3),
+      V = NULL,
+      V0 = ab(0, 20)
+    ),
+    sec = "V = V0 * wt"
+  )
+)
+```
+
+This example changes the range of *Ke*, deletes *V*, adds *V0*, and
+defines a new secondary relationship for *V = V0 \* wt*.
+
+### 5.3 File
+
+The only way to update a model file is to edit the text file and load it
+with `PM_model$new()`. The advantage is that it is quick and relatively
+easy. The disadvantage is that you have to keep editing, copying and
+pasting files, and unless your documentation in R or elsewhere is good,
+you have no idea how you changed the model from run to run. In contrast,
+by using the `$update()` method in R6, you can see a written record of
+how the model evolved over the project.
+
+## 6 Reserved Names
+
+The following cannot be used as primary, covariate, or secondary
+variable names. They can be used in equations, however.
+
+| Reserved.Variable | Function.in.Pmetrics                             |
+|-------------------|--------------------------------------------------|
+| t                 | time                                             |
+| x                 | array of compartment amounts                     |
+| dx                | array of first derivative of compartment amounts |
+| p                 | array of primary parameters                      |
+| rateiv            | infusion vector                                  |
+| cov               | covariate hashmap                                |
+| y                 | output vector                                    |
