@@ -104,7 +104,8 @@ Michael Neely, Julian Otalvaro
 
   - **nsub** Number of subjects
 
-  - **ab** Matrix of boundaries for random parameter values
+  - **ab** Tibble/data frame of boundaries for random parameter values
+    with columns: name, lower, upper.
 
 ## Active bindings
 
