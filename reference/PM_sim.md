@@ -330,14 +330,14 @@ objects.
   - The fourth option for limits is a fully customized data frame or
     list of limits for simulated values for each parameter which will
     overwrite any limits in the model file. If specified, it should be a
-    data frame or list with columns or elements, respectively, "name",
-    "lower", "upper". For example, use a PM_final\$ab object, or a code
-    it like
-    `limits = list(name = c("Ka", "Ke", "V"), lower = c(0.1, 0.1, 10), upper = c(5, 5, 200))`
+    data frame or list with columns or elements, respectively, "par",
+    "min", "max". For example, use a PM_final\$ab object, or a code it
+    like
+    `limits = list(par = c("Ka", "Ke", "V"), min = c(0.1, 0.1, 10), max = c(5, 5, 200))`
     or
-    `limits = data.frame(name = c("Ka", "Ke", "V"), lower = c(0.1, 0.1, 10), upper = c(5, 5, 200))`
+    `limits = data.frame(par = c("Ka", "Ke", "V"), min = c(0.1, 0.1, 10), max = c(5, 5, 200))`
     or
-    `limits = tibble::tibble(name = c("Ka", "Ke", "V"), lower = c(0.1, 0.1, 10), upper = c(5, 5, 200))`.
+    `limits = tibble::tibble(par = c("Ka", "Ke", "V"), min = c(0.1, 0.1, 10), max = c(5, 5, 200))`.
     Each of these specifies custom limits for 3 parameters named Ka, Ke,
     and V, with limits of (0.1, 5), (0.1, 5) and (10, 200),
     respectively. The last example uses tibbles, the tidyverse
