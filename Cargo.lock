@@ -1286,9 +1286,9 @@ dependencies = [
 
 [[package]]
 name = "pharmsol"
-version = "0.20.0"
+version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "98b8e2ab3a0e91cd4b20c28544cb3676e8df31aa490cf5680ec0531259b5fa4e"
+checksum = "2fc25564d039d0cd5701013aa3785a339b14cf0b51409d7b817320bc360dc944"
 dependencies = [
  "argmin",
  "argmin-math",
@@ -1328,13 +1328,12 @@ dependencies = [
 
 [[package]]
 name = "pmcore"
-version = "0.21.1"
+version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "703e83f4a6a919cc60b85936d560840947b1b07a2d8ccfa7c87144d1722b6d63"
+checksum = "2719d343acdd4f12da31b87a851b7fb378ecd9cc580068326b7471ae76624029"
 dependencies = [
  "anyhow",
  "argmin",
- "argmin-math",
  "csv",
  "faer",
  "faer-ext",

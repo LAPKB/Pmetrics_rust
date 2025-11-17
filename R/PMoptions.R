@@ -6,7 +6,7 @@
 #' @details
 #' This function will get user options for Pmetrics. It will look for a *PMoptions.json* file
 #' in a hidden folder outside of the Pmetrics package. If that does not exist,
-#' it will look for a default options file in the package options folder. See [setPMoptions] for 
+#' it will look for a default options file in the package options folder. See [setPMoptions] for
 #' details on where the options file is stored and how to set options.
 #'
 #' @param opt The option to retrieve.  If omitted, all option values will be returned.
@@ -16,26 +16,55 @@
 #' @author Michael Neely
 #' @export
 
+pm_options_user_dir <- function() {
+  dplyr::case_when(
+    getOS() %in% c(1, 3) ~ fs::path_expand("~/.PMopts"),
+    getOS() == 2 ~ file.path(Sys.getenv("APPDATA"), "PMopts"),
+    TRUE ~ fs::path_expand("~/.PMopts")
+  )
+}
+
+pm_options_user_file <- function() {
+  file.path(pm_options_user_dir(), "PMoptions.json")
+}
+
+pm_remote_default_settings <- function() {
+  list(
+    profile_name = "default",
+    base_url = "",
+    queue = "heavy-jobs",
+    poll_interval_sec = 5,
+    timeout_sec = 3600,
+    verify_tls = TRUE,
+    api_key_alias = "hermes-default"
+  )
+}
+
+pm_options_store_remote_key <- function(alias, api_key) {
+  handler <- get0("pm_remote_store_api_key", mode = "function")
+  if (is.null(handler)) {
+    stop("Remote key storage helper is unavailable", call. = FALSE)
+  }
+  handler(alias, api_key)
+}
+
 getPMoptions <- function(opt, warn = TRUE, quiet = FALSE) {
   # check for existing options
-  opt_dir <- dplyr::case_when(
-    getOS() == 1 | getOS() == 3 ~ "~/.PMopts", # Mac, Linux
-    getOS() == 2 ~ file.path(Sys.getenv("APPDATA"), "PMopts")
-  )
-  
+  opt_dir <- pm_options_user_dir()
+
   if (dir.exists(opt_dir)) { # external options file exists
     PMoptionsFile <- file.path(opt_dir, "PMoptions.json")
   } else { # external options file does not exist
     PMoptionsFile <- paste(system.file("options", package = "Pmetrics"), "PMoptions.json", sep = "/")
   }
-  
-  
+
+
   # if it doesn't exist, warn and exit
   if (!file.exists(PMoptionsFile)) {
-    if (warn & !quiet) cli::cli_inform("Run {.help setPMoptions} to create a Pmetrics options file.")
+    if (warn && !quiet) cli::cli_inform("Run {.help setPMoptions} to create a Pmetrics options file.")
     return(invisible(-1))
   }
-  
+
   # read the options file
   PMopts <- jsonlite::read_json(path = PMoptionsFile, simplifyVector = TRUE)
   if (missing(opt)) {
@@ -61,7 +90,7 @@ getPMoptions <- function(opt, warn = TRUE, quiet = FALSE) {
 #' Also, when the Pmetrics package is first loaded with `library(Pmetrics)`,
 #' this function will be called with `launch.app = TRUE` to read saved options from
 #' a *PMoptions.json* file stored in a folder outside
-#' of the Pmetrics package, so that your options will persist when Pmetrics is updated. 
+#' of the Pmetrics package, so that your options will persist when Pmetrics is updated.
 #'
 #' @param launch.app Launch the app to set options. Default `TRUE`.
 #' @return The user preferences file will be updated.  This will persist from session to session
@@ -70,216 +99,276 @@ getPMoptions <- function(opt, warn = TRUE, quiet = FALSE) {
 #' @export
 
 setPMoptions <- function(launch.app = TRUE) {
-  
-  
-  # --- Helper: OS Detection Function ---
-  getOS <- function() {
-    sysname <- Sys.info()[["sysname"]]
-    if (sysname == "Darwin") return(1)      # Mac
-    if (sysname == "Windows") return(2)     # Windows
-    if (sysname == "Linux") return(3)       # Linux
-    return(0)  # unknown
-  }
-  
-  opt_dir <- dplyr::case_when(
-    getOS() %in% c(1, 3) ~ fs::path_expand("~/.PMopts"),
-    getOS() == 2 ~ file.path(Sys.getenv("APPDATA"), "PMopts"),
-    TRUE ~ tempdir()  # fallback
-  )
-  
-  fs::dir_create(opt_dir)  # ensure directory exists
-  PMoptionsUserFile <- file.path(opt_dir, "PMoptions.json")
-  
+  opt_dir <- pm_options_user_dir()
+
+  fs::dir_create(opt_dir) # ensure directory exists
+  PMoptionsUserFile <- pm_options_user_file()
+
   # If file doesn't exist in user space, copy default
   if (!fs::file_exists(PMoptionsUserFile)) {
     PMoptionsFile <- glue::glue(system.file("options", package = "Pmetrics"), "/PMoptions.json")
     fs::file_copy(PMoptionsFile, PMoptionsUserFile, overwrite = TRUE)
   }
-  
+
+  settings <- tryCatch(
+    jsonlite::read_json(PMoptionsUserFile, simplifyVector = TRUE),
+    error = function(e) list()
+  )
+
+  remote_defaults <- pm_remote_default_settings()
+  remote_settings <- remote_defaults
+  if (!is.null(settings$remote)) {
+    remote_settings <- utils::modifyList(remote_defaults, settings$remote)
+  }
+
+  settings$remote_base_url <- remote_settings$base_url
+  settings$remote_queue <- remote_settings$queue
+  settings$remote_poll_interval <- remote_settings$poll_interval_sec
+  settings$remote_timeout <- remote_settings$timeout_sec
+  settings$remote_allow_insecure <- !isTRUE(remote_settings$verify_tls)
+
   app <- shiny::shinyApp(
-    
+
     # --- UI ---
     ui = bslib::page_fluid(
       theme = bslib::bs_theme(bootswatch = "flatly"),
       title = "Pmetrics Options",
-      
-      tags$details(
-        tags$summary("📁 Data File Reading"),
-        selectInput("sep", "Field separator",
-        choices = c(Comma = ",", Semicolon = ";", Tab = "\t"),
-        selected = ","),
-        
-        selectInput("dec", "Decimal mark",
-        choices = c(Period = ".", Comma = ","),
-        selected = ".")
+      shiny::tags$details(
+        shiny::tags$summary("📁 Data File Reading"),
+        shiny::selectInput("sep", "Field separator",
+          choices = c(Comma = ",", Semicolon = ";", Tab = "\t"),
+          selected = ","
+        ),
+        shiny::selectInput("dec", "Decimal mark",
+          choices = c(Period = ".", Comma = ","),
+          selected = "."
+        )
       ),
       # Formatting options
-      tags$details(
-        tags$summary("📏 Formatting Options"),
-        numericInput("digits", "Number of digits to display",
-        value = 3, min = 0, max = 10, step = 1)
+      shiny::tags$details(
+        shiny::tags$summary("📏 Formatting Options"),
+        shiny::numericInput("digits", "Number of digits to display",
+          value = 3, min = 0, max = 10, step = 1
+        )
       ),
-
-      conditionalPanel(
+      shiny::conditionalPanel(
         condition = "input.show == false",
-        #Fit options
-      tags$details(
-        tags$summary("🔍 Fit Options"),
-        selectInput("backend", "Default backend",
-        choices = c("Rust" = "rust"),
-        selected = "rust"),
-        markdown("*Rust is the only backend currently supported by Pmetrics.*")
+        # Fit options
+        shiny::tags$details(
+          shiny::tags$summary("🔍 Fit Options"),
+          shiny::selectInput("backend", "Default backend",
+            choices = c("Rust" = "rust", "Hermes Remote" = "remote"),
+            selected = settings$backend %||% "rust"
+          ),
+          shiny::markdown("Select Hermes Remote to run fits via the Hermes service."),
+          shiny::conditionalPanel(
+            condition = "input.backend == 'remote'",
+            shiny::div(
+              class = "mt-3",
+              shiny::textInput("remote_base_url", "Hermes base URL",
+                placeholder = "https://hermes.example.com",
+                value = remote_settings$base_url
+              ),
+              shiny::textInput("remote_queue", "Queue name", value = remote_settings$queue),
+              shiny::numericInput("remote_poll_interval", "Poll interval (seconds)",
+                value = remote_settings$poll_interval_sec, min = 1, step = 1
+              ),
+              shiny::numericInput("remote_timeout", "Request timeout (seconds)",
+                value = remote_settings$timeout_sec, min = 30, step = 30
+              ),
+              shiny::checkboxInput("remote_allow_insecure", "Disable TLS verification (local testing only)",
+                value = !remote_settings$verify_tls
+              ),
+              shiny::passwordInput("remote_api_key", "Hermes API key", value = ""),
+              shiny::helpText("API keys are saved to the system keychain. Leave blank to keep the stored key.")
+            )
+          )
+        )
+      ),
+      shiny::tags$details(
+        shiny::tags$summary("📊 Prediction Error Metrics"),
+        shiny::br(),
+        shiny::checkboxInput("show_metrics", "Display error metrics on obs-pred plots with linear regression", TRUE),
+        shiny::selectInput("bias_method", "Bias Method",
+          choices = c(
+            "Mean absolute error (MAE)" = "mae",
+            "Mean weighted error (MWE)" = "mwe"
+          ),
+          selected = "mwe"
+        ),
+        shiny::selectInput("imp_method", "Imprecision Method",
+          choices = c(
+            "Mean squared error (MSE)" = "mse",
+            "Mean weighted squared error (MWSE)" = "mwse",
+            "Root mean squared error (RMSE)" = "rmse",
+            "Mean, bias-adjusted, squared error (MBASE)" = "mbase",
+            "Mean, bias-adjusted, weighted, squared error (MBAWSE)" = "mbawse",
+            "Root mean, bias-adjusted, weighted, squared error (RMBAWSE)" = "rmbawse"
+          ),
+          selected = "rmbawse"
+        ),
+        shiny::checkboxInput("use_percent", "Use percent for error metrics", value = TRUE),
+        shiny::selectInput("ic_method", "Information Criterion Method",
+          choices = c(
+            "Akaike Information Criterion (AIC)" = "aic",
+            "Bayesian Information Criterion (BIC)" = "bic"
+          ),
+          selected = "aic"
+        )
+      ),
+      shiny::tags$details(
+        shiny::tags$summary("📝 Report Generation"),
+        shiny::selectInput("report_template", "Default report template",
+          choices = c("plotly", "ggplot2"),
+          selected = "plotly"
+        )
+      ),
+      shiny::br(),
+      shiny::div(
+        class = "d-flex gap-2",
+        shiny::actionButton("save", "Save"),
+        shiny::actionButton("exit", "Exit"),
+      ),
+      shiny::br(),
+      shiny::br(),
+      shiny::verbatimTextOutput("settings_location"),
+      shiny::br(),
+      shiny::actionButton("open_file", "Open Options File",
+        icon = shiny::icon("folder-open"), class = "btn-primary"
       )
     ),
-      
-      tags$details(
-        tags$summary("📊 Prediction Error Metrics"),
-        br(),
-        checkboxInput("show_metrics", "Display error metrics on obs-pred plots with linear regression", TRUE),
-        selectInput("bias_method", "Bias Method",
-        choices = c(
-          "Mean absolute error (MAE)" = "mae", 
-          "Mean weighted error (MWE)" = "mwe"
-        ),
-        selected = "mwe"),
-        
-        selectInput("imp_method", "Imprecision Method",
-        choices = c(
-          
-          "Mean squared error (MSE)" = "mse", 
-          "Mean weighted squared error (MWSE)" = "mwse", 
-          "Root mean squared error (RMSE)" = "rmse", 
-          "Mean, bias-adjusted, squared error (MBASE)" = "mbase", 
-          "Mean, bias-adjusted, weighted, squared error (MBAWSE)" = "mbawse", 
-          "Root mean, bias-adjusted, weighted, squared error (RMBAWSE)" = "rmbawse"
-        ),
-        selected = "rmbawse"),
 
-        checkboxInput("use_percent", "Use percent for error metrics", value = TRUE),
-
-        selectInput("ic_method", "Information Criterion Method",
-          choices = c(
-          "Akaike Information Criterion (AIC)" = "aic", 
-          "Bayesian Information Criterion (BIC)" = "bic"
-        ),
-        selected = "aic")
-        
-      ),
-      
-      tags$details(
-        tags$summary("📝 Report Generation"),
-        selectInput("report_template", "Default report template", 
-        choices = c("plotly", "ggplot2"),
-        selected = "plotly")
-      ),
-      br(),
-      div(
-        class = "d-flex gap-2",
-        actionButton("save", "Save"),
-        actionButton("exit", "Exit"),
-      ),
-      
-      br(),
-      br(),
-      shiny::verbatimTextOutput("settings_location"),
-      br(),
-      
-      actionButton("open_file", "Open Options File", 
-      icon = icon("folder-open"), class = "btn-primary")
-    ),
-    
     # --- Server ---
     server = function(input, output, session) {
-      
       # Load settings from external file
-      settings <- tryCatch({
-        jsonlite::fromJSON(PMoptionsUserFile)
-      }, error = function(e) NULL)
-      
-      # update this list every time a new option is added
-      input_types <- list(
-        sep = updateSelectInput,
-        dec = updateSelectInput,
-        show_metrics = updateCheckboxInput,
-        digits = updateNumericInput,
-        bias_method = updateSelectInput,
-        imp_method = updateSelectInput,
-        use_percent = updateCheckboxInput,
-        ic_method = updateSelectInput,
-        report_template = updateSelectInput,
-        backend = updateSelectInput
+      settings <- tryCatch(
+        {
+          jsonlite::fromJSON(PMoptionsUserFile)
+        },
+        error = function(e) NULL
       )
 
-      
+      # update this list every time a new option is added
+      input_types <- list(
+        sep = shiny::updateSelectInput,
+        dec = shiny::updateSelectInput,
+        show_metrics = shiny::updateCheckboxInput,
+        digits = shiny::updateNumericInput,
+        bias_method = shiny::updateSelectInput,
+        imp_method = shiny::updateSelectInput,
+        use_percent = shiny::updateCheckboxInput,
+        ic_method = shiny::updateSelectInput,
+        report_template = shiny::updateSelectInput,
+        backend = shiny::updateSelectInput,
+        remote_base_url = shiny::updateTextInput,
+        remote_queue = shiny::updateTextInput,
+        remote_poll_interval = shiny::updateNumericInput,
+        remote_timeout = shiny::updateNumericInput,
+        remote_allow_insecure = shiny::updateCheckboxInput
+      )
+
+
       # Apply updates
       purrr::imap(settings, function(val, name) {
         updater <- input_types[[name]]
-        arg_name <- input_types[[name]] %>% formals() %>% names() %>% keep(~ .x %in% c("value", "selected"))
-        
-        if (!is.null(updater) && !is.null(arg_name)) {
+        formals_names <- names(formals(updater))
+        arg_name <- intersect(formals_names, c("value", "selected"))
+        arg_name <- arg_name[1]
+
+        if (!is.null(updater) && length(arg_name) == 1 && nzchar(arg_name)) {
           args <- list(session = session, inputId = name)
-          args[[arg_name]] <- val %>% stringr::str_remove("^percent_")  # remove 'percent_' prefix if present
+          args[[arg_name]] <- stringr::str_remove(val, "^percent_") # remove 'percent_' prefix if present
           do.call(updater, args)
-        } 
+        }
       })
-      
-      
-      
-      
-      
+
+
+
+
+
       # Display path to user settings file
-      output$settings_location <- renderText({
+      output$settings_location <- shiny::renderText({
         glue::glue("Options file path:\n{PMoptionsUserFile}")
       })
-      
-      
+
+
       ### Action button handlers
-      
+
       # Save updated settings
-      observeEvent(input$save, {
-        settings <- list(sep = input$sep, dec = input$dec, digits = input$digits, show_metrics = input$show_metrics,
-          bias_method = glue::glue(c("","percent_")[1+as.numeric(input$use_percent)], input$bias_method), 
-          imp_method = glue::glue(c("","percent_")[1+as.numeric(input$use_percent)], input$imp_method),
+      shiny::observeEvent(input$save, {
+        percent_prefix <- c("", "percent_")[1 + as.numeric(input$use_percent)]
+        remote_payload <- list(
+          profile_name = remote_settings$profile_name %||% "default",
+          base_url = input$remote_base_url %||% "",
+          queue = input$remote_queue %||% "heavy-jobs",
+          poll_interval_sec = as.numeric(input$remote_poll_interval %||% remote_defaults$poll_interval_sec),
+          timeout_sec = as.numeric(input$remote_timeout %||% remote_defaults$timeout_sec),
+          verify_tls = !isTRUE(input$remote_allow_insecure),
+          api_key_alias = remote_settings$api_key_alias %||% remote_defaults$api_key_alias
+        )
+        settings <- list(
+          sep = input$sep,
+          dec = input$dec,
+          digits = input$digits,
+          show_metrics = input$show_metrics,
+          bias_method = glue::glue(percent_prefix, input$bias_method),
+          imp_method = glue::glue(percent_prefix, input$imp_method),
           ic_method = input$ic_method,
-          report_template = input$report_template, backend = input$backend)
-          
-          save_status <- tryCatch(jsonlite::write_json(settings, PMoptionsUserFile, pretty = TRUE, auto_unbox = TRUE),
+          report_template = input$report_template,
+          backend = input$backend,
+          remote = remote_payload
+        )
+
+        save_status <- tryCatch(jsonlite::write_json(settings, PMoptionsUserFile, pretty = TRUE, auto_unbox = TRUE),
           error = function(e) {
             shiny::showNotification(
               paste("Error saving settings:", e$message),
               type = "error", duration = 5
             )
             return(FALSE)
-          })
-          shiny::showNotification(
-            "Settings saved", type = "message", duration = 3
-          )
-        })
-        
-        # Exit the app
-        observeEvent(input$exit, {
-          shiny::stopApp()
-        })
-        
-        # Open the options file in the default application
-        observeEvent(input$open_file, {
-          system(glue::glue("open {PMoptionsUserFile}"))
-        })
-      } #end server
-    ) #end shinyApp
-    
-    
-    # Launch the app without trying to launch another browser
-    if(launch.app){
-      shiny::runApp(app, launch.browser = TRUE)
-    }
-  
-  return(invisible(NULL))
-    
+          }
+        )
+        if (identical(save_status, FALSE)) {
+          return(invisible(NULL))
+        }
+        shiny::showNotification(
+          "Settings saved",
+          type = "message", duration = 3
+        )
 
+        if (!is.null(input$remote_api_key) && nzchar(input$remote_api_key)) {
+          tryCatch(
+            {
+              pm_options_store_remote_key(remote_payload$api_key_alias, input$remote_api_key)
+              shiny::showNotification("API key stored in keychain", type = "message", duration = 3)
+            },
+            error = function(e) {
+              shiny::showNotification(
+                paste("Failed to store API key:", e$message),
+                type = "error", duration = 5
+              )
+            }
+          )
+        }
+      })
+
+      # Exit the app
+      shiny::observeEvent(input$exit, {
+        shiny::stopApp()
+      })
+
+      # Open the options file in the default application
+      shiny::observeEvent(input$open_file, {
+        system(glue::glue("open {PMoptionsUserFile}"))
+      })
+    } # end server
+  ) # end shinyApp
+
+
+  # Launch the app without trying to launch another browser
+  if (launch.app) {
+    shiny::runApp(app, launch.browser = TRUE)
+  }
+
+  return(invisible(NULL))
 } # end of PM_options function
-  
-  
-  
-  
-  

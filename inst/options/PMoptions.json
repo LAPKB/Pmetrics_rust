@@ -3,5 +3,14 @@
   "dec": ["."],
   "lang": ["en"],
   "backend": ["rust"],
-  "op_stats": [true]
+  "op_stats": [true],
+  "remote": {
+    "profile_name": "default",
+    "base_url": "",
+    "queue": "heavy-jobs",
+    "poll_interval_sec": 5,
+    "timeout_sec": 3600,
+    "verify_tls": true,
+    "api_key_alias": "hermes-default"
+  }
 }
