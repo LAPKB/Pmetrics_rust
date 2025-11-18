@@ -312,44 +312,40 @@ setPMoptions <- function(launch.app = TRUE, backend = NULL, remote = NULL, remot
           value = 3, min = 0, max = 10, step = 1
         )
       ),
-      shiny::conditionalPanel(
-        condition = "input.show == false",
-        # Fit options
-        shiny::tags$details(
-          shiny::tags$summary("🔍 Fit Options"),
-          shiny::selectInput("backend", "Default backend",
-            choices = c("Rust" = "rust", "Hermes Remote" = "remote"),
-            selected = settings$backend %||% "rust"
+      # Fit options
+      shiny::tags$details(
+        shiny::tags$summary("🔍 Fit Options"),
+        shiny::selectInput("backend", "Default backend",
+          choices = c("Rust" = "rust", "Hermes Remote" = "remote"),
+          selected = settings$backend %||% "rust"
+        ),
+        shiny::markdown("Select Hermes Remote to run fits via the Hermes service."),
+        shiny::div(
+          class = "mt-3 p-3 border rounded bg-light",
+          shiny::tags$strong("Hermes Remote Settings"),
+          shiny::helpText("These values are used whenever the backend is set to Hermes Remote."),
+          shiny::textInput("remote_profile_name", "Profile name",
+            value = remote_settings$profile_name %||% "default"
           ),
-          shiny::markdown("Select Hermes Remote to run fits via the Hermes service."),
-          shiny::conditionalPanel(
-            condition = "input.backend == 'remote'",
-            shiny::div(
-              class = "mt-3",
-              shiny::textInput("remote_profile_name", "Profile name",
-                value = remote_settings$profile_name %||% "default"
-              ),
-              shiny::textInput("remote_base_url", "Hermes base URL",
-                placeholder = "https://hermes.example.com",
-                value = remote_settings$base_url
-              ),
-              shiny::textInput("remote_queue", "Queue name", value = remote_settings$queue),
-              shiny::numericInput("remote_poll_interval", "Poll interval (seconds)",
-                value = remote_settings$poll_interval_sec, min = 1, step = 1
-              ),
-              shiny::numericInput("remote_timeout", "Request timeout (seconds)",
-                value = remote_settings$timeout_sec, min = 30, step = 30
-              ),
-              shiny::checkboxInput("remote_allow_insecure", "Disable TLS verification (local testing only)",
-                value = !remote_settings$verify_tls
-              ),
-              shiny::textInput("remote_api_key_alias", "API key alias",
-                value = remote_settings$api_key_alias
-              ),
-              shiny::passwordInput("remote_api_key", "Hermes API key", value = ""),
-              shiny::helpText("API keys are saved to the system keychain. Leave blank to keep the stored key.")
-            )
-          )
+          shiny::textInput("remote_base_url", "Hermes base URL",
+            placeholder = "https://hermes.example.com",
+            value = remote_settings$base_url
+          ),
+          shiny::textInput("remote_queue", "Queue name", value = remote_settings$queue),
+          shiny::numericInput("remote_poll_interval", "Poll interval (seconds)",
+            value = remote_settings$poll_interval_sec, min = 1, step = 1
+          ),
+          shiny::numericInput("remote_timeout", "Request timeout (seconds)",
+            value = remote_settings$timeout_sec, min = 30, step = 30
+          ),
+          shiny::checkboxInput("remote_allow_insecure", "Disable TLS verification (local testing only)",
+            value = !remote_settings$verify_tls
+          ),
+          shiny::textInput("remote_api_key_alias", "API key alias",
+            value = remote_settings$api_key_alias
+          ),
+          shiny::passwordInput("remote_api_key", "Hermes API key", value = ""),
+          shiny::helpText("API keys are saved to the system keychain. Leave blank to keep the stored key.")
         )
       ),
       shiny::tags$details(
