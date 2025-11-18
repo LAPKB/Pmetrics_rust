@@ -86,9 +86,10 @@ fit_result <- mod$fit(
   points = 2028,
   seed = 22,
   remote = TRUE,
-  remote_config = profile_cfg,
+  remote_config = profile_cfg
 ) # This returns a PM_result object via Hermes
 print(fit_result$runInfo)
+# fit_result$op$plot()
 
 # # Stage working directories similar to PM_model$fit -----------------------
 # run_root <- file.path("examples", "bke", "pmfit_remote")

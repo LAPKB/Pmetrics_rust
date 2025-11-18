@@ -28,6 +28,29 @@ pm_options_user_file <- function() {
   file.path(pm_options_user_dir(), "PMoptions.json")
 }
 
+pm_options_default_file <- function() {
+  file.path(system.file("options", package = "Pmetrics"), "PMoptions.json")
+}
+
+pm_options_load_defaults <- function() {
+  defaults_path <- pm_options_default_file()
+  if (!file.exists(defaults_path)) {
+    return(list())
+  }
+  jsonlite::read_json(defaults_path, simplifyVector = TRUE)
+}
+
+pm_options_merge_defaults <- function(user_settings) {
+  defaults <- pm_options_load_defaults()
+  if (length(defaults) == 0) {
+    return(user_settings)
+  }
+  if (is.null(user_settings) || length(user_settings) == 0) {
+    return(defaults)
+  }
+  utils::modifyList(defaults, user_settings)
+}
+
 pm_remote_default_settings <- function() {
   list(
     profile_name = "default",
@@ -55,7 +78,7 @@ getPMoptions <- function(opt, warn = TRUE, quiet = FALSE) {
   if (dir.exists(opt_dir)) { # external options file exists
     PMoptionsFile <- file.path(opt_dir, "PMoptions.json")
   } else { # external options file does not exist
-    PMoptionsFile <- paste(system.file("options", package = "Pmetrics"), "PMoptions.json", sep = "/")
+    PMoptionsFile <- pm_options_default_file()
   }
 
 
@@ -66,7 +89,8 @@ getPMoptions <- function(opt, warn = TRUE, quiet = FALSE) {
   }
 
   # read the options file
-  PMopts <- jsonlite::read_json(path = PMoptionsFile, simplifyVector = TRUE)
+  PMopts_raw <- jsonlite::read_json(path = PMoptionsFile, simplifyVector = TRUE)
+  PMopts <- pm_options_merge_defaults(PMopts_raw)
   if (missing(opt)) {
     return(PMopts)
   } else {
@@ -106,7 +130,7 @@ setPMoptions <- function(launch.app = TRUE) {
 
   # If file doesn't exist in user space, copy default
   if (!fs::file_exists(PMoptionsUserFile)) {
-    PMoptionsFile <- glue::glue(system.file("options", package = "Pmetrics"), "/PMoptions.json")
+    PMoptionsFile <- pm_options_default_file()
     fs::file_copy(PMoptionsFile, PMoptionsUserFile, overwrite = TRUE)
   }
 
@@ -114,6 +138,7 @@ setPMoptions <- function(launch.app = TRUE) {
     jsonlite::read_json(PMoptionsUserFile, simplifyVector = TRUE),
     error = function(e) list()
   )
+  settings <- pm_options_merge_defaults(settings)
 
   remote_defaults <- pm_remote_default_settings()
   remote_settings <- remote_defaults
