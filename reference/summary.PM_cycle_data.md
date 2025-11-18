@@ -35,7 +35,7 @@ NPex$cycle$data %>% summary()
 #> ── Cycle Summary ──
 #> 
 #> Cycle number: 100 of 100
-#> Status: Maximum cycles reached
+#> Status: Stop: MaxCycles
 #> Log-likelihood: 440.985
 #> AIC:: 448.985
 #> BIC: 452.968

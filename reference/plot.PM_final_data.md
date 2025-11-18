@@ -29,7 +29,4 @@ plot(x, ...)
 
 ``` r
 NPex$final$data %>% plot()
-#> Error in arrange(., par): ℹ In argument: `..1 = par`.
-#> Caused by error:
-#> ! `..1` must be a vector, not a function.
 ```
