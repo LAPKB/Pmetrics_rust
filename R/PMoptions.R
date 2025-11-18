@@ -53,13 +53,13 @@ pm_options_merge_defaults <- function(user_settings) {
 
 pm_remote_default_settings <- function() {
   list(
-    profile_name = "default",
-    base_url = "",
+    profile_name = "bke-example",
+    base_url = "http://localhost:8080",
     queue = "heavy-jobs",
-    poll_interval_sec = 5,
+    poll_interval_sec = 2,
     timeout_sec = 3600,
     verify_tls = TRUE,
-    api_key_alias = "hermes-default"
+    api_key_alias = "hermes-bke"
   )
 }
 
@@ -69,6 +69,103 @@ pm_options_store_remote_key <- function(alias, api_key) {
     stop("Remote key storage helper is unavailable", call. = FALSE)
   }
   handler(alias, api_key)
+}
+
+pm_options_persist_settings <- function(settings, path) {
+  jsonlite::write_json(settings, path, pretty = TRUE, auto_unbox = TRUE)
+}
+
+pm_options_numeric_or_default <- function(value, fallback, min_value = NULL) {
+  numeric_value <- suppressWarnings(as.numeric(value))
+  if (length(numeric_value) != 1 || is.na(numeric_value) || !is.finite(numeric_value)) {
+    numeric_value <- fallback
+  }
+  if (!is.null(min_value) && numeric_value < min_value) {
+    numeric_value <- min_value
+  }
+  numeric_value
+}
+
+pm_options_remote_validators <- function() {
+  list(
+    normalize_url = get0("pm_remote_normalize_url", mode = "function"),
+    validate_queue = get0("pm_remote_validate_queue", mode = "function"),
+    validate_numeric = get0("pm_remote_validate_numeric", mode = "function"),
+    validate_profile = get0("pm_remote_validate_profile", mode = "function"),
+    profile_config = get0("pm_remote_validate_profile_config", mode = "function")
+  )
+}
+
+pm_options_normalize_remote_override <- function(remote) {
+  if (is.null(remote) || !is.list(remote) || length(remote) == 0) {
+    return(NULL)
+  }
+
+  normalized <- list()
+  normalized$profile_name <- remote$profile_name %||% remote$profile
+  normalized$base_url <- remote$base_url %||% remote$url
+  normalized$queue <- remote$queue
+  normalized$poll_interval_sec <- remote$poll_interval_sec %||% remote$poll_interval
+  normalized$timeout_sec <- remote$timeout_sec %||% remote$timeout
+
+  if (!is.null(remote$verify_tls)) {
+    normalized$verify_tls <- isTRUE(remote$verify_tls)
+  }
+  if (!is.null(remote$allow_insecure)) {
+    normalized$verify_tls <- !isTRUE(remote$allow_insecure)
+  }
+
+  normalized$api_key_alias <- remote$api_key_alias %||% remote$alias
+  compact_normalized <- Filter(function(x) !is.null(x), normalized)
+  if (length(compact_normalized) == 0) {
+    return(NULL)
+  }
+  compact_normalized
+}
+
+pm_options_validate_remote <- function(values, defaults, require_base_url = FALSE) {
+  candidate <- defaults
+  if (!is.null(values) && length(values) > 0) {
+    candidate <- utils::modifyList(candidate, values)
+  }
+
+  candidate$profile_name <- candidate$profile_name %||% defaults$profile_name %||% "default"
+  candidate$api_key_alias <- candidate$api_key_alias %||% defaults$api_key_alias %||% paste0("hermes-", candidate$profile_name)
+  candidate$queue <- candidate$queue %||% defaults$queue
+  candidate$poll_interval_sec <- pm_options_numeric_or_default(candidate$poll_interval_sec, defaults$poll_interval_sec, min_value = 1)
+  candidate$timeout_sec <- pm_options_numeric_or_default(candidate$timeout_sec, defaults$timeout_sec, min_value = 30)
+  candidate$verify_tls <- isTRUE(candidate$verify_tls)
+
+  if (!nzchar(candidate$base_url %||% "")) {
+    if (isTRUE(require_base_url)) {
+      stop("Hermes base URL is required when using the remote backend.", call. = FALSE)
+    }
+    candidate$base_url <- candidate$base_url %||% ""
+    candidate$queue <- trimws(candidate$queue)
+    candidate$api_key_alias <- trimws(candidate$api_key_alias)
+    if (!nzchar(candidate$api_key_alias)) {
+      candidate$api_key_alias <- paste0("hermes-", candidate$profile_name)
+    }
+    return(candidate)
+  }
+
+  validators <- pm_options_remote_validators()
+  if (any(vapply(validators, is.null, logical(1)))) {
+    stop("Hermes remote helpers are unavailable; reinstall Pmetrics to enable remote fits.", call. = FALSE)
+  }
+
+  candidate$profile_name <- validators$validate_profile(candidate$profile_name)
+  candidate$base_url <- validators$normalize_url(candidate$base_url)
+  candidate$queue <- validators$validate_queue(candidate$queue)
+  candidate$poll_interval_sec <- validators$validate_numeric(candidate$poll_interval_sec, name = "poll_interval", min_value = 1)
+  candidate$timeout_sec <- validators$validate_numeric(candidate$timeout_sec, name = "timeout", min_value = 30)
+  candidate$verify_tls <- isTRUE(candidate$verify_tls)
+  candidate$api_key_alias <- trimws(candidate$api_key_alias)
+  if (!nzchar(candidate$api_key_alias)) {
+    candidate$api_key_alias <- paste0("hermes-", candidate$profile_name)
+  }
+  validators$profile_config(candidate)
+  candidate
 }
 
 getPMoptions <- function(opt, warn = TRUE, quiet = FALSE) {
@@ -117,12 +214,20 @@ getPMoptions <- function(opt, warn = TRUE, quiet = FALSE) {
 #' of the Pmetrics package, so that your options will persist when Pmetrics is updated.
 #'
 #' @param launch.app Launch the app to set options. Default `TRUE`.
+#' @param backend Optional backend override when calling programmatically. Use
+#'   `"remote"` to select Hermes by default.
+#' @param remote Optional named list of Hermes remote settings (e.g., base URL,
+#'   queue, poll/poll_interval_sec, timeout/timeout_sec, verify_tls,
+#'   profile_name, api_key_alias). When supplied, the settings are validated and
+#'   written without launching the UI.
+#' @param remote_api_key Optional Hermes API key to store in the system keychain
+#'   when updating remote settings programmatically.
 #' @return The user preferences file will be updated.  This will persist from session to session
 #' and if stored in the external location, through Pmetrics versions.
 #' @author Michael Neely
 #' @export
 
-setPMoptions <- function(launch.app = TRUE) {
+setPMoptions <- function(launch.app = TRUE, backend = NULL, remote = NULL, remote_api_key = NULL) {
   opt_dir <- pm_options_user_dir()
 
   fs::dir_create(opt_dir) # ensure directory exists
@@ -146,11 +251,42 @@ setPMoptions <- function(launch.app = TRUE) {
     remote_settings <- utils::modifyList(remote_defaults, settings$remote)
   }
 
+  remote_override <- pm_options_normalize_remote_override(remote)
+  overrides_requested <- !is.null(remote_override) || !is.null(backend) || !is.null(remote_api_key)
+
+  if (overrides_requested) {
+    target_backend <- backend %||% settings$backend %||% "rust"
+    candidate <- remote_settings
+    if (!is.null(remote_override)) {
+      candidate <- utils::modifyList(candidate, remote_override)
+    }
+    override_names <- names(remote_override %||% list())
+    require_base_url <- identical(target_backend, "remote") || ("base_url" %in% override_names)
+    candidate <- pm_options_validate_remote(candidate, remote_defaults, require_base_url = require_base_url)
+    remote_settings <- candidate
+    settings$remote <- remote_settings
+    if (!is.null(backend)) {
+      settings$backend <- backend
+    }
+    pm_options_persist_settings(settings, PMoptionsUserFile)
+
+    if (!is.null(remote_api_key) && nzchar(remote_api_key)) {
+      alias <- remote_settings$api_key_alias %||% remote_defaults$api_key_alias
+      pm_options_store_remote_key(alias, remote_api_key)
+    }
+
+    if (!isTRUE(launch.app)) {
+      return(invisible(settings))
+    }
+  }
+
   settings$remote_base_url <- remote_settings$base_url
   settings$remote_queue <- remote_settings$queue
   settings$remote_poll_interval <- remote_settings$poll_interval_sec
   settings$remote_timeout <- remote_settings$timeout_sec
   settings$remote_allow_insecure <- !isTRUE(remote_settings$verify_tls)
+  settings$remote_profile_name <- remote_settings$profile_name
+  settings$remote_api_key_alias <- remote_settings$api_key_alias
 
   app <- shiny::shinyApp(
 
@@ -190,6 +326,9 @@ setPMoptions <- function(launch.app = TRUE) {
             condition = "input.backend == 'remote'",
             shiny::div(
               class = "mt-3",
+              shiny::textInput("remote_profile_name", "Profile name",
+                value = remote_settings$profile_name %||% "default"
+              ),
               shiny::textInput("remote_base_url", "Hermes base URL",
                 placeholder = "https://hermes.example.com",
                 value = remote_settings$base_url
@@ -203,6 +342,9 @@ setPMoptions <- function(launch.app = TRUE) {
               ),
               shiny::checkboxInput("remote_allow_insecure", "Disable TLS verification (local testing only)",
                 value = !remote_settings$verify_tls
+              ),
+              shiny::textInput("remote_api_key_alias", "API key alias",
+                value = remote_settings$api_key_alias
               ),
               shiny::passwordInput("remote_api_key", "Hermes API key", value = ""),
               shiny::helpText("API keys are saved to the system keychain. Leave blank to keep the stored key.")
@@ -289,7 +431,9 @@ setPMoptions <- function(launch.app = TRUE) {
         remote_queue = shiny::updateTextInput,
         remote_poll_interval = shiny::updateNumericInput,
         remote_timeout = shiny::updateNumericInput,
-        remote_allow_insecure = shiny::updateCheckboxInput
+        remote_allow_insecure = shiny::updateCheckboxInput,
+        remote_profile_name = shiny::updateTextInput,
+        remote_api_key_alias = shiny::updateTextInput
       )
 
 
@@ -323,14 +467,27 @@ setPMoptions <- function(launch.app = TRUE) {
       shiny::observeEvent(input$save, {
         percent_prefix <- c("", "percent_")[1 + as.numeric(input$use_percent)]
         remote_payload <- list(
-          profile_name = remote_settings$profile_name %||% "default",
+          profile_name = input$remote_profile_name %||% remote_settings$profile_name %||% "default",
           base_url = input$remote_base_url %||% "",
           queue = input$remote_queue %||% "heavy-jobs",
           poll_interval_sec = as.numeric(input$remote_poll_interval %||% remote_defaults$poll_interval_sec),
           timeout_sec = as.numeric(input$remote_timeout %||% remote_defaults$timeout_sec),
           verify_tls = !isTRUE(input$remote_allow_insecure),
-          api_key_alias = remote_settings$api_key_alias %||% remote_defaults$api_key_alias
+          api_key_alias = input$remote_api_key_alias %||% remote_settings$api_key_alias %||% remote_defaults$api_key_alias
         )
+
+        require_remote <- identical(input$backend, "remote") || nzchar(remote_payload$base_url)
+        remote_payload <- tryCatch(
+          pm_options_validate_remote(remote_payload, remote_defaults, require_base_url = require_remote),
+          error = function(e) {
+            shiny::showNotification(e$message, type = "error", duration = 6)
+            return(NULL)
+          }
+        )
+        if (is.null(remote_payload)) {
+          return(invisible(NULL))
+        }
+
         settings <- list(
           sep = input$sep,
           dec = input$dec,
@@ -344,7 +501,7 @@ setPMoptions <- function(launch.app = TRUE) {
           remote = remote_payload
         )
 
-        save_status <- tryCatch(jsonlite::write_json(settings, PMoptionsUserFile, pretty = TRUE, auto_unbox = TRUE),
+        save_status <- tryCatch(pm_options_persist_settings(settings, PMoptionsUserFile),
           error = function(e) {
             shiny::showNotification(
               paste("Error saving settings:", e$message),

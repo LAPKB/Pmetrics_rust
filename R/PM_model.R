@@ -962,9 +962,6 @@ PM_model <- R6::R6Class(
     #' @param remote Optional logical flag to override the backend defined via [setPMoptions].
     #' When `TRUE`, the fit runs via Hermes remote execution; when `FALSE`, the local Rust backend
     #' is forced. If `NULL` (default) the backend follows the current option setting.
-    #' @param remote_config Optional list of Hermes profile overrides passed to [pm_remote_profile_config].
-    #' Use this to provide run-specific queue or credential settings without changing global options.
-    #' Ignored unless `remote = TRUE` (either explicitly or via [setPMoptions]).
     #' @param report If missing, the default Pmetrics report template as specified in [getPMoptions]
     #' is used. Otherwise can be "plotly", "ggplot", or "none".
     #' @return A successful run will result in creation of a new folder in the working
@@ -986,7 +983,6 @@ PM_model <- R6::R6Class(
                    overwrite = FALSE,
                    algorithm = "NPAG", # POSTPROB for posteriors, select when cycles = 0, allow for "NPOD"
                    remote = NULL,
-                   remote_config = NULL,
                    report = getPMoptions("report_template")) {
       msg <- character() # status message at end of run
       run_error <- 0
@@ -1118,13 +1114,6 @@ PM_model <- R6::R6Class(
           "i" = "See help for {.fn setPMoptions}"
         ))
       }
-      if (!is.null(remote_config) && backend != "remote") {
-        cli::cli_warn(c(
-          "!" = "Ignoring {.arg remote_config} because the remote backend is not active.",
-          "i" = "Set {.arg remote = TRUE} to use the provided configuration."
-        ))
-      }
-
       #### Include or exclude subjects ####
       if (is.null(include)) {
         include <- unique(data$standard_data$id)
@@ -1285,7 +1274,7 @@ PM_model <- R6::R6Class(
         PM_parse(path = out_path)
         res <- PM_load(path = normalizePath(out_path), file = "PMout.Rdata")
       } else {
-        profile_cfg <- pm_remote_profile_config(config = remote_config)
+        profile_cfg <- pm_remote_profile_config()
         pm_remote_validate_profile_config(profile_cfg)
         data_csv <- readr::read_file(gendata_path)
         payload <- pm_remote_build_payload(

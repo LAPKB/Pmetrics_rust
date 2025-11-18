@@ -12,13 +12,13 @@ if (!exists("%||%", mode = "function")) {
 
 pm_remote_default_settings <- function() {
     list(
-        profile_name = "default",
-        base_url = "",
+        profile_name = "bke-example",
+        base_url = "http://localhost:8080",
         queue = "heavy-jobs",
-        poll_interval_sec = 5,
+        poll_interval_sec = 2,
         timeout_sec = 3600,
         verify_tls = TRUE,
-        api_key_alias = "hermes-default"
+        api_key_alias = "hermes-bke"
     )
 }
 
@@ -56,6 +56,8 @@ pm_options_user_file <- function() {
 #' @param allow_insecure Set to `TRUE` only for local testing with self-signed
 #'   certificates. Production deployments should always verify TLS.
 #' @param profile Named profile to create or update (defaults to `"default"`).
+#' @param api_key_alias Optional keyring alias to associate with the profile.
+#'   Defaults to `"hermes-"` + `profile`.
 #' @param set_active When `TRUE`, mark this profile as the active remote target.
 #'
 #' @return The profile definition (invisibly).
@@ -68,6 +70,7 @@ pm_remote_configure <- function(
     timeout = 3600,
     allow_insecure = FALSE,
     profile = "default",
+    api_key_alias = NULL,
     set_active = TRUE) {
     if (missing(base_url) || !is.character(base_url) || length(base_url) != 1) {
         stop("base_url must be a single string", call. = FALSE)
@@ -79,7 +82,14 @@ pm_remote_configure <- function(
     timeout <- pm_remote_validate_numeric(timeout, name = "timeout", min_value = 30)
     profile <- pm_remote_validate_profile(profile)
 
-    api_key_alias <- paste0("hermes-", profile)
+    if (!is.null(api_key_alias)) {
+        if (!is.character(api_key_alias) || length(api_key_alias) != 1 || !nzchar(api_key_alias)) {
+            stop("api_key_alias must be a non-empty string", call. = FALSE)
+        }
+        api_key_alias <- trimws(api_key_alias)
+    } else {
+        api_key_alias <- paste0("hermes-", profile)
+    }
     profile_entry <- list(
         profile_name = profile,
         base_url = base_url,
@@ -166,13 +176,13 @@ if (!exists("%||%", mode = "function")) {
 
     pm_remote_default_settings <- function() {
         list(
-            profile_name = "default",
-            base_url = "",
+            profile_name = "bke-example",
+            base_url = "http://localhost:8080",
             queue = "heavy-jobs",
-            poll_interval_sec = 5,
+            poll_interval_sec = 2,
             timeout_sec = 3600,
             verify_tls = TRUE,
-            api_key_alias = "hermes-default"
+            api_key_alias = "hermes-bke"
         )
     }
 

@@ -195,7 +195,7 @@ pm_remote_wait_for_job <- function(job_id, profile = NULL, config = NULL, poll_i
       stop(sprintf("Hermes job %s failed: %s", job_id, status$error), call. = FALSE)
     }
 
-    if (identical(message, "Job completed successfully")) {
+    if (message %in% c("Artifacts uploaded", "Job completed successfully")) {
       return(list(status = status, history = history, profile = prof))
     }
 
