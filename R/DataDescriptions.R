@@ -128,22 +128,6 @@
 
 #'
 
-"ITex"
-
-#' Example data set for an NPAG/IT2B run.
-#'
-#' Data are kindly supplied by Chuck Peloquin, PharmD. They consist of multiple
-#' rifapentine oral doses followed by 6-7 concentrations in 20 adult subjects.
-#' Covariates include weight (kg), africa (origin), age (years),
-#' gender (1 = male), and height (cm).
-#'
-#' @name dataEx
-#' @docType data
-#' @title Pmetrics data file
-#' @usage dataEx
-#' @format [Pmetrics::PM_data]
-#' @author Michael Neely
-#' @keywords datasets
 
 
 "dataEx"
