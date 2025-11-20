@@ -3,6 +3,7 @@
 \docType{data}
 \name{ITex}
 \alias{ITex}
+\alias{dataEx}
 \title{Example IT2B Output}
 \format{
 R6 \link{PM_result}
