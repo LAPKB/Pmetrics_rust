@@ -13,7 +13,7 @@ articles:
   running: running.html
   simulation: simulation.html
   workflow: workflow.html
-last_built: 2025-11-20T18:45Z
+last_built: 2025-11-20T20:07Z
 urls:
   reference: https://lapkb.github.io/Pmetrics_rust/reference
   article: https://lapkb.github.io/Pmetrics_rust/articles
