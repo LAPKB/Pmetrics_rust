@@ -7,7 +7,7 @@ Generates a report from a specified Rmd template
 ## Usage
 
 ``` r
-PM_report(x, template, path, show = TRUE, quiet = FALSE)
+PM_report(x, template, path, show = TRUE, quiet = TRUE)
 ```
 
 ## Arguments
@@ -30,8 +30,7 @@ PM_report(x, template, path, show = TRUE, quiet = FALSE)
 
 - path:
 
-  The path for the generated report, defaults to a temporary file in the
-  current working directory.
+  The path for the generated report, defaults to a temporary folder.
 
 - show:
 
@@ -40,12 +39,12 @@ PM_report(x, template, path, show = TRUE, quiet = FALSE)
 
 - quiet:
 
-  If `TRUE`, suppresses the message about report generation, defaults to
-  `FALSE`.
+  If `TRUE` (default), suppresses knitr output about report generation.
+  Progress messages will still be displayed.
 
 ## Value
 
-Generates an HTML-report in the current working directory.
+Generates an HTML-report in the folder specified by `path`.
 
 ## See also
 

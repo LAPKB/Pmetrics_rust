@@ -286,6 +286,7 @@ Re-generate the report
 
   Parameters passed to
   [PM_report](https://lapkb.github.io/Pmetrics_rust/reference/PM_report.md).
+  In particular, pay attention to `path`.
 
 ------------------------------------------------------------------------
 
