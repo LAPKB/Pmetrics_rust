@@ -23,7 +23,7 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/LAPKB/Pmetrics_rust/blob/main/inst/CITATION)
+[`inst/CITATION`](https://github.com/LAPKB/Pmetrics_rust/blob/v.3.0.1/inst/CITATION)
 
 Neely MN, van Guilder MG, Yamada WM, Schumitzky A, Jelliffe RW. Accurate
 detection of outliers and subpopulations with Pmetrics, a nonparametric
