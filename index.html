@@ -19,7 +19,6 @@
 <meta property="og:title" content="Pmetrics for Population Modeling and Simulation">
 <meta name="description" content="Pmetrics is short for pharmacometrics, the discipline of modeling drug kinetics and effects on biologic systems, including disease progression. Models can be used to simulate novel therapeutic dosing regimens and/or populations, informing trial design and dosing strategies. The package supports primarily non-parametric but also parametric pharmacometric modeling and simulation with functions to run and analyze the output from all three components of the Pmetrics software suite for population pharmacometric data analysis: 1) IT2B (Iterative Two-Stage Bayesian) for parametric models; 2) NPAG (Non-parametric Adaptive Grid) for non-paramametric models; 3) Simulator for semi-parametric Monte-Carlo simulations.">
 <meta property="og:description" content="Pmetrics is short for pharmacometrics, the discipline of modeling drug kinetics and effects on biologic systems, including disease progression. Models can be used to simulate novel therapeutic dosing regimens and/or populations, informing trial design and dosing strategies. The package supports primarily non-parametric but also parametric pharmacometric modeling and simulation with functions to run and analyze the output from all three components of the Pmetrics software suite for population pharmacometric data analysis: 1) IT2B (Iterative Two-Stage Bayesian) for parametric models; 2) NPAG (Non-parametric Adaptive Grid) for non-paramametric models; 3) Simulator for semi-parametric Monte-Carlo simulations.">
-<meta property="og:image" content="https://lapkb.github.io/Pmetrics_rust/logo.png">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -69,22 +68,38 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header">
-<img src="logo.png" class="logo" alt=""><h1 id="pmetrics-">Pmetrics 
+<div class="page-header"><h1 id="pmetrics-">Pmetrics <a href="https://lapkb.github.io/Pmetrics/" class="external-link"><img src="Images/Pmetrics_logo.png" align="right" height="139" alt="Pmetrics website"></a>
 <a class="anchor" aria-label="anchor" href="#pmetrics-"></a>
-</h1>
-</div>
+</h1></div>
 <p><span class="emoji" data-emoji="warning">⚠️</span> This is a development branch of Pmetrics using a new backend written in Rust. The repository for the current stable release is <a href="https://github.com/LAPKB/Pmetrics" class="external-link">LAPKB/Pmetrics</a>.</p>
-<p>Thank you for your interest in Pmetrics. Pmetrics is a library package for R to perform non-parametric and parametric pharmacokinetic-pharmacodynamic population and individual modeling and simulation. It is primarily designed for pharmacometric researchers.</p>
-<p>Pmetrics is based on over 35 years of research by our laboratory and is the most mature non-parametric method available. Nevertheless, Pmetrics is dynamically evolving. Best of all, it is SHAREWARE with only a suggested donation.</p>
-<p>More information about Pmetrics is available at the <a href="http://www.lapk.org/Pmetrics.php" class="external-link">Laboratory of Applied Pharmacokinetics and Bioinformatics</a>.</p>
+<p>Thank you for your interest in Pmetrics, created by the <a href="http://www.lapk.org" class="external-link">Laboratory of Applied Pharmacokinetics and Bioinformatics</a>. Pmetrics is a library package for R to perform non-parametric and parametric pharmacokinetic-pharmacodynamic population and individual modeling and simulation. It is primarily designed for pharmacometric researchers.</p>
+<p>Pmetrics is based on over 40 years of research by our laboratory and is the most mature non-parametric method available. Nevertheless, Pmetrics is dynamically evolving. Best of all, it is SHAREWARE with only a suggested donation.</p>
+<div class="section level2">
+<h2 id="source-code">Source code<a class="anchor" aria-label="anchor" href="#source-code"></a>
+</h2>
+<p>The open source code for the Pmetrics R package is hosted here on Github. LAPKB has developed two other packages, <a href="https://github.com/LAPKB/PMcore" class="external-link">PMcore</a> and <a href="https://github.com/LAPKB/pharmsol" class="external-link">pharmsol</a>, which implement the core algorithms used by Pmetrics. These packages are also open source and available on Github.</p>
+</div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>In R, you can install this development version of Pmetrics from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
+<p>To install and use Pmetrics, you will need <strong>R</strong>, <strong>Rust</strong>, and the <strong>Pmetrics</strong> package appropriate for your system.</p>
+<p><a href="https://r-project.org" class="external-link"><img src="Images/Rlogo.png" align="left" height="40"></a><br><br> You can download and install <strong>R</strong> from the <a href="https://cran.r-project.org/" class="external-link">Comprehensive R Archive Network (CRAN)</a>.</p>
+<p><a href="https://rust-lang.org" class="external-link"><img src="Images/rust-logo-64x64.png" align="left" height="40" alt="Rust website"></a><br><br><strong>Rust</strong> is the language used by pharmsol for the backend of Pmetrics and all the heavy “number crunching”. Rust is modern, fast, reliable, widely used, and extremely well supported. It works on all major operating systems.</p>
+<p>Follow the instructions on the <a href="https://www.rust-lang.org/tools/install" class="external-link">Rust website</a> to install Rust on your system.</p>
+<p><img src="Images/Pmetrics_logo.png" align="left" height="40"><br><br> The compiled versions of <strong>Pmetrics</strong> for MacOS, Windows and Linux are hosted on <a href="https://lapkb.r-universe.dev/Pmetrics" class="external-link">r-universe</a>. Follow these easy steps to install the correct version for your system.</p>
+<ul>
+<li>One time only, add the LAPKB r-universe repository to your list of repositories by running this command in R.</li>
+</ul>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"LAPKB/Pmetrics_rust"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>repos <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>LAPKB <span class="op">=</span> <span class="st">'https://lapkb.r-universe.dev'</span>, <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">'repos'</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<ul>
+<li>After you have run the above command once, forever after you can install Pmetrics by running this command in R: <code>install.packages("Pmetrics")</code> and you can update it with <code>update.packages("Pmetrics")</code>. These commands are the same as for any other R package hosted on CRAN. By having the LAPKB repository in your list of repositories, R will automatically find and install/update the correct version of Pmetrics for your system.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
+</h2>
+<p>We encourgage you to visit the <a href="https://lapkb.github.io/Pmetrics/" class="external-link">Pmetrics website</a> for documentation, tutorials, and examples.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
