@@ -52,7 +52,8 @@ Helper functions for R6 object creations
   **\[stable\]** : Proportional error model
 - [`interp()`](https://lapkb.github.io/Pmetrics_rust/reference/interp.md)
   **\[stable\]** : Model covariate declaration
-- [`PMtree()`](https://lapkb.github.io/Pmetrics_rust/reference/PMtree.md)
+- [`PM_tree()`](https://lapkb.github.io/Pmetrics_rust/reference/PM_tree.md)
+  [`PMtree()`](https://lapkb.github.io/Pmetrics_rust/reference/PM_tree.md)
   **\[stable\]** : Create a new Pmetrics folder tree
 - [`makeAUC()`](https://lapkb.github.io/Pmetrics_rust/reference/makeAUC.md)
   **\[stable\]** : Calculation of AUCs
@@ -218,8 +219,6 @@ Auxilliary functions
 
 Pmetrics datasets
 
-- [`ITex`](https://lapkb.github.io/Pmetrics_rust/reference/ITex.md) :
-  Example IT2B Output
 - [`NPex`](https://lapkb.github.io/Pmetrics_rust/reference/NPex.md) :
   Example NPAG Output with validation
 - [`badData`](https://lapkb.github.io/Pmetrics_rust/reference/badData.md)

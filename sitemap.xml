@@ -14,7 +14,6 @@
 <url><loc>https://lapkb.github.io/Pmetrics_rust/articles/workflow.html</loc></url>
 <url><loc>https://lapkb.github.io/Pmetrics_rust/authors.html</loc></url>
 <url><loc>https://lapkb.github.io/Pmetrics_rust/index.html</loc></url>
-<url><loc>https://lapkb.github.io/Pmetrics_rust/reference/ITex.html</loc></url>
 <url><loc>https://lapkb.github.io/Pmetrics_rust/reference/ITload.html</loc></url>
 <url><loc>https://lapkb.github.io/Pmetrics_rust/reference/ITreport.html</loc></url>
 <url><loc>https://lapkb.github.io/Pmetrics_rust/reference/NM2PM.html</loc></url>
@@ -45,6 +44,7 @@
 <url><loc>https://lapkb.github.io/Pmetrics_rust/reference/PM_result.html</loc></url>
 <url><loc>https://lapkb.github.io/Pmetrics_rust/reference/PM_sim.html</loc></url>
 <url><loc>https://lapkb.github.io/Pmetrics_rust/reference/PM_step.html</loc></url>
+<url><loc>https://lapkb.github.io/Pmetrics_rust/reference/PM_tree.html</loc></url>
 <url><loc>https://lapkb.github.io/Pmetrics_rust/reference/PM_tutorial.html</loc></url>
 <url><loc>https://lapkb.github.io/Pmetrics_rust/reference/PM_valid.html</loc></url>
 <url><loc>https://lapkb.github.io/Pmetrics_rust/reference/PMbuild.html</loc></url>
@@ -63,7 +63,6 @@
 <url><loc>https://lapkb.github.io/Pmetrics_rust/reference/PMreport.html</loc></url>
 <url><loc>https://lapkb.github.io/Pmetrics_rust/reference/PMsave.html</loc></url>
 <url><loc>https://lapkb.github.io/Pmetrics_rust/reference/PMtest.html</loc></url>
-<url><loc>https://lapkb.github.io/Pmetrics_rust/reference/PMtree.html</loc></url>
 <url><loc>https://lapkb.github.io/Pmetrics_rust/reference/PMwriteDefaults.html</loc></url>
 <url><loc>https://lapkb.github.io/Pmetrics_rust/reference/PMwriteMatrix.html</loc></url>
 <url><loc>https://lapkb.github.io/Pmetrics_rust/reference/PMwrk2csv.html</loc></url>

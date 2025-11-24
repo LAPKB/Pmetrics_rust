@@ -13,10 +13,9 @@ with
 objects. Defining a PM_model allows for fitting it to the data via the
 `$fit()` method to conduct a population analysis, i.e. estimating the
 probability distribution of model equation paramter values in the
-population. The PM_model object is created using the
-[`build_model()`](https://lapkb.github.io/Pmetrics_rust/reference/build_model.md)
-function, by defining a list directly in R, or by reading a model text
-file. See the vignette on models for details.
+population. The PM_model object is created using the a model building
+app (coming soon), by defining a list directly in R, or by reading a
+model text file. See the vignette on models for details.
 
 **Some notes on the example at the end of this help page:**
 
@@ -24,7 +23,7 @@ file. See the vignette on models for details.
   absorption.
 
 - We show the method of defining the model first and embedding the
-  `PM_model$new()` within a `donttest` block to avoid automatic
+  `PM_model$new()` within a `dontrun` block to avoid automatic
   compilation.
 
 - Since this model can also be solved analytically with algebra, we
@@ -800,7 +799,7 @@ The objects of this class are cloneable with this method.
 
 ``` r
 mod_list <- list(
-  pri = c(
+  pri = list(
     CL = ab(10, 200),
     V0 = ab(0, 100),
     ka = ab(0, 3),
@@ -808,7 +807,7 @@ mod_list <- list(
     k32 = ab(0, 5),
     lag1 = ab(0, 2)
   ),
-  cov = c(
+  cov = list(
     wt = interp()
   ),
   sec = function() {
@@ -828,7 +827,7 @@ mod_list <- list(
     y[1] <- x[1] / V
     y[2] <- x[4] # AUC, not fitted to any data, not required
   },
-  err = c(
+  err = list(
     proportional(2, c(0.1, 0.15, 0, 0)) # only applies to y[1]
   )
 )

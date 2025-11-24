@@ -12,7 +12,7 @@ R6
 
 When beginning a new modeling project, it is convenient to use the
 command
-[`PMtree()`](https://lapkb.github.io/Pmetrics_rust/reference/PMtree.md).
+[`PMtree()`](https://lapkb.github.io/Pmetrics_rust/reference/PM_tree.md).
 This command will set up a new directory in the current working
 directory named whatever you have included as the “project name”.
 

@@ -11,7 +11,7 @@ necessary to run a population analysis."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">Pmetrics</a>
 
-    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">3.0.0</small>
+    <small class="nav-text text-default me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">3.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -64,12 +64,12 @@ necessary to run a population analysis.</p>
 via the <code>$fit()</code> method to conduct a
 population analysis, i.e. estimating the probability distribution of model equation
 paramter values in the population. The PM_model object is created using the
-<code><a href="build_model.html">build_model()</a></code> function, by defining a list
+a model building app (coming soon), by defining a list
 directly in R, or by reading a model text file. See the vignette on models
 for details.</p>
 <p><strong>Some notes on the example at the end of this help page:</strong></p><ul><li><p>It's a complete example of a three compartment model with delayed absorption.</p></li>
 <li><p>We show the method of defining the model first and embedding the <code>PM_model$new()</code> within
-a <code>donttest</code> block to avoid automatic compilation.</p></li>
+a <code>dontrun</code> block to avoid automatic compilation.</p></li>
 <li><p>Since this model can also be solved analytically with algebra, we could have used
 <code>eqn = function(){three_comp_bolus}</code>.</p></li>
 </ul></div>
@@ -720,7 +720,7 @@ For deletions, set the value to <code>NULL</code>.</p></dd>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">mod_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  pri <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  pri <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>    CL <span class="op">=</span> <span class="fu"><a href="ab.html">ab</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">200</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>    V0 <span class="op">=</span> <span class="fu"><a href="ab.html">ab</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">100</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>    ka <span class="op">=</span> <span class="fu"><a href="ab.html">ab</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">3</span><span class="op">)</span>,</span></span>
@@ -728,7 +728,7 @@ For deletions, set the value to <code>NULL</code>.</p></dd>
 <span class="r-in"><span>    k32 <span class="op">=</span> <span class="fu"><a href="ab.html">ab</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">5</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>    lag1 <span class="op">=</span> <span class="fu"><a href="ab.html">ab</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span>,</span></span>
-<span class="r-in"><span>  cov <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  cov <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>    wt <span class="op">=</span> <span class="fu"><a href="interp.html">interp</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span>,</span></span>
 <span class="r-in"><span>  sec <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="op">{</span></span></span>
@@ -748,7 +748,7 @@ For deletions, set the value to <code>NULL</code>.</p></dd>
 <span class="r-in"><span>    <span class="va">y</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">x</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">/</span> <span class="va">V</span></span></span>
 <span class="r-in"><span>    <span class="va">y</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">x</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span> <span class="co"># AUC, not fitted to any data, not required</span></span></span>
 <span class="r-in"><span>  <span class="op">}</span>,</span></span>
-<span class="r-in"><span>  err <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  err <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>    <span class="fu"><a href="proportional.html">proportional</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.15</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="co"># only applies to y[1]</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
