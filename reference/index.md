@@ -270,6 +270,8 @@ Utility functions
   : Download and install Pmetrics patches
 - [`PMtest()`](https://lapkb.github.io/Pmetrics_rust/reference/PMtest.md)
   **\[stable\]** : Test Pmetrics
+- [`PM_help()`](https://lapkb.github.io/Pmetrics_rust/reference/PM_help.md)
+  **\[stable\]** : Get Help and Report Issues
 - [`setPMoptions()`](https://lapkb.github.io/Pmetrics_rust/reference/setPMoptions.md)
   **\[stable\]** : Set Pmetrics User Options
 
