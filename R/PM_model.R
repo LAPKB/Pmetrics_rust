@@ -401,7 +401,7 @@ PM_model <- R6::R6Class(
         )
         
         if (!is.null(x)) {
-          model_sections <- c("pri", "cov", "sec", "eqn", "lag", "fa", "ini", "out", "err")
+          #model_sections <- c("pri", "cov", "sec", "eqn", "lag", "fa", "ini", "out", "err")
           if (is.character(x) && length(x) == 1) { # x is a filename
             if (!file.exists(x)) {
               cli::cli_abort(c(
@@ -411,11 +411,9 @@ PM_model <- R6::R6Class(
             }
             self$arg_list <- private$R6fromFile(x) # read file and populate fields
           } else if (is.list(x)) { # x is a list in R
-            purrr::walk(model_sections, \(s) {
-              if (s %in% names(x)) {
-                self$arg_list[[s]] <- x[[s]]
-              }
-            })
+            self$arg_list <- utils::modifyList(self$arg_list, x$arg_list)
+            self$arg_list$x <- NULL
+
           } else if (inherits(x, "PM_model")) { # x is a PM_model object
             if (!"arg_list" %in% names(x)) {
               cli::cli_abort(c(
@@ -424,11 +422,7 @@ PM_model <- R6::R6Class(
               ))
             }
             
-            purrr::walk(model_sections, \(s) {
-              if (s %in% names(x$arg_list)) {
-                self$arg_list[[s]] <- x$arg_list[[s]]
-              }
-            })
+            self$arg_list <- utils::modifyList(self$arg_list, x$arg_list)
             self$arg_list$x <- NULL
           } else {
             cli::cli_abort(c(
@@ -740,6 +734,7 @@ PM_model <- R6::R6Class(
             self$compile()
           }
         } else { # default is to compile
+          browser()
           self$compile()
         }
       },
