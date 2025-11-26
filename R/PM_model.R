@@ -1363,21 +1363,20 @@ PM_model <- R6::R6Class(
             return(invisible(NULL))
           }
           
-          model_path <- file.path(tempdir(), "model.rs")
-          private$write_model_to_rust(model_path)
+          model_rs <- private$create_rs()
           output_path <- tempfile(pattern = "model_", fileext = ".pmx")
           cli::cli_inform(c("i" = "Compiling model..."))
           # path inside Pmetrics package
-          template_path <- getPMoptions("model_template_path")
+          template_path <- if (Sys.getenv("env") == "Development") { temporary_path() } else { system.file(package = "Pmetrics")}
           if (file.access(template_path, 0) == -1 | file.access(template_path, 2) == -1){
             cli::cli_abort(c("x" = "Template path {.path {template_path}} does not exist or is not writable.",
             "i" = "Please set the template path with {.fn setPMoptions} (choose {.emph Compile Options}), to an existing, writable folder."
           ))
         } 
-        cat("Using template path:", template_path, "\n")
+        if (Sys.getenv("env") == "Development") {cat("Using template path:", template_path, "\n")}
         tryCatch(
           {
-            compile_model(model_path, output_path, private$get_primary(), template_path = template_path, kind = tolower(self$model_list$type))
+            compile_model(model_rs, template_path, output_path, private$get_primary(), kind = tolower(self$model_list$type))
             self$binary_path <- output_path
           },
           error = function(e) {
@@ -1387,7 +1386,6 @@ PM_model <- R6::R6Class(
           }
         )
         
-        file.remove(model_path) # remove temporary model file
         return(invisible(self))
       },
       #' @description
@@ -1578,7 +1576,7 @@ PM_model <- R6::R6Class(
         return(arg_list)
       }, # end R6fromFile
       
-      write_model_to_rust = function(file_path = "main.rs") {
+      create_rs = function() {
         # Check if model_list is not NULL
         if (is.null(self$model_list)) {
           cli::cli_abort(c("x" = "Model list is empty.", "i" = "Please provide a valid model list."))
@@ -1603,8 +1601,8 @@ PM_model <- R6::R6Class(
         # Replace placeholders in the base string with actual values from model_list
         base <- placeholders %>%
         purrr::reduce(\(x, y) stringr::str_replace(x, stringr::str_c("<", y, ">"), as.character(self$model_list[[y]])), .init = base)
-        # Write the model to a file
-        writeLines(base, file_path)
+        
+        return(base)
       },
       from_file = function(file_path) {
         self$model_list <- private$makeR6model(model_filename)

@@ -6,7 +6,7 @@ mod simulation;
 
 use anyhow::Result;
 use extendr_api::prelude::*;
-use pmcore::prelude::{data::read_pmetrics, pharmsol::exa::build, Analytical, ODE};
+use pmcore::prelude::{Analytical, ODE, data::read_pmetrics, pharmsol::{build::temp_path, exa::build}};
 use simulation::SimulationRow;
 use std::process::Command;
 use tracing_subscriber::layer::SubscriberExt;
@@ -179,27 +179,27 @@ fn parse_theta(matrix: RMatrix<f64>) -> Vec<Vec<f64>> {
 }
 
 /// Compiles the text representation of a model into a binary file.
-/// @param model_path Path to the model file.
-/// @param output_path Path to save the compiled model.
+/// @param model_rs Text of the rust model.
+/// @param template_path Path to the template directory where Rust model is compiled.
+/// @param output_path Path to save the compiled model and execute during $fit().
 /// @param params List of model parameters.
-/// @param template_path Path to the template directory.
 /// @param kind Kind of model, which can either be "ODE" or "Analytical".
 /// @return Result of the compilation process.
 /// @export
 #[extendr]
 fn compile_model(
-    model_path: &str,
+    model_rs: &str,
+    template_path: &str,
     output_path: &str,
     params: Strings,
-    template_path: &str,
     kind: &str,
 ) -> Result<()> {
     let params: Vec<String> = params.iter().map(|x| x.to_string()).collect();
-    let model_txt = std::fs::read_to_string(model_path).expect("Failed to read model file");
+    let model_rs = model_rs.to_string();
     let template_path = std::path::PathBuf::from(template_path);
     match kind {
         "ode" => build::compile::<ODE>(
-            model_txt,
+            model_rs,
             Some(output_path.into()),
             params.to_vec(),
             template_path,
@@ -208,7 +208,7 @@ fn compile_model(
             },
         )?,
         "analytical" => build::compile::<Analytical>(
-            model_txt,
+            model_rs,
             Some(output_path.into()),
             params.to_vec(),
             template_path,

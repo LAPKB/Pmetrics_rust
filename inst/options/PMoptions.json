@@ -7,6 +7,5 @@
   "imp_method": "percent_rmbawse",
   "ic_method": "aic",
   "report_template": "plotly",
-  "backend": "rust",
-  "model_template_path": ""
+  "backend": "rust"
 }
