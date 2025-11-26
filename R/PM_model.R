@@ -411,7 +411,7 @@ PM_model <- R6::R6Class(
             }
             self$arg_list <- private$R6fromFile(x) # read file and populate fields
           } else if (is.list(x)) { # x is a list in R
-            self$arg_list <- utils::modifyList(self$arg_list, x$arg_list)
+            self$arg_list <- utils::modifyList(self$arg_list, x)
             self$arg_list$x <- NULL
 
           } else if (inherits(x, "PM_model")) { # x is a PM_model object
@@ -734,7 +734,7 @@ PM_model <- R6::R6Class(
             self$compile()
           }
         } else { # default is to compile
-          browser()
+        
           self$compile()
         }
       },

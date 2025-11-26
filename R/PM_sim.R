@@ -573,7 +573,7 @@ PM_sim <- R6::R6Class(
         }
         
         # CASE 1 - poppar is PM_result
-        
+  
         if (inherits(poppar, "PM_result")) {
           case <- 1
           final <- poppar$final$data # PM_final_data
@@ -680,6 +680,7 @@ PM_sim <- R6::R6Class(
           }
           
         } else {
+            
           # CASE 9 - last option, poppar is filename
           if (file.exists(poppar)) {
             if (grepl("rds$", poppar, perl = TRUE)) { # poppar is rds filename
@@ -802,7 +803,7 @@ PM_sim <- R6::R6Class(
         } # end if !is.null(covariate)
         
         # finally, call the simulator, which updates self$data
-        
+         
         private$SIMrun(
           poppar = final, limits = limits, model = model,
           data = data, split = split,
@@ -1321,7 +1322,6 @@ PM_sim <- R6::R6Class(
       
       # CALL SIMULATOR ----------------------------------------------------------------
       
-      
       template <- PM_data$new(template, quiet = TRUE)
       mod <- PM_model$new(arg_list, quiet = TRUE)
       
@@ -1404,9 +1404,9 @@ PM_sim <- R6::R6Class(
             msg = msg
           )
         } else {
-          thisPrior <- poppar$popPoints %>% mutate(prob = 1/n())
+     
+          thisPrior <- list(thetas = as.data.frame(poppar$popPoints)) 
         }
-        
         self$data <- private$getSim(thisPrior, template, mod, noise2, msg = msg)
       }
       
