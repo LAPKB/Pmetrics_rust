@@ -114,7 +114,7 @@ NPex$cycle$plot(
 }
 }
 \seealso{
-\link{PM_result}, \link{schema}
+\link{PM_result}, \link[plotly:schema]{plotly::schema}
 
 Other PMplots: 
 \code{\link{plot.PM_cov}()},

@@ -14,6 +14,31 @@ After a run completes, results are stored on your hard drive. They are loaded
 back into R with \link{PM_load} to create the \link{PM_result} object, which contains both
 the results and functions to analyze or plot the result.
 }
+\examples{
+
+## ------------------------------------------------
+## Method `PM_result$bestdose`
+## ------------------------------------------------
+
+\dontrun{
+# Load NPAG result
+result <- PM_load(1)
+
+# Create target data
+target <- PM_data$new("target.csv")
+
+# Run BestDose optimization
+bd <- result$bestdose(
+  target = target,
+  dose_range = list(min = 50, max = 500),
+  bias_weight = 0.5
+)
+
+# View results
+print(bd)
+bd$get_doses()
+}
+}
 \author{
 Michael Neely, Julian Otalvaro
 }
@@ -67,6 +92,7 @@ new optimal sampling results.}
 \item \href{#method-PM_result-nca}{\code{PM_result$nca()}}
 \item \href{#method-PM_result-report}{\code{PM_result$report()}}
 \item \href{#method-PM_result-sim}{\code{PM_result$sim()}}
+\item \href{#method-PM_result-bestdose}{\code{PM_result$bestdose()}}
 \item \href{#method-PM_result-save}{\code{PM_result$save()}}
 \item \href{#method-PM_result-validate}{\code{PM_result$validate()}}
 \item \href{#method-PM_result-step}{\code{PM_result$step()}}
@@ -247,6 +273,85 @@ arguments, e.g. \verb{$sim(include = 1:2, predInt = 1, limits = NA)}.}
 }
 \if{html}{\out{</div>}}
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-PM_result-bestdose"></a>}}
+\if{latex}{\out{\hypertarget{method-PM_result-bestdose}{}}}
+\subsection{Method \code{bestdose()}}{
+Run BestDose optimization using this result as the prior
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{PM_result$bestdose(
+  target,
+  past_data = NULL,
+  dose_range = list(min = 0, max = 1000),
+  bias_weight = 0.5,
+  target_type = "concentration",
+  time_offset = NULL,
+  ...
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{target}}{PM_data object or path to CSV with target doses/observations.
+Required. This defines the dosing template and target values. Set dose amounts
+to 0 for doses to be optimized.}
+
+\item{\code{past_data}}{Optional: PM_data object or path to CSV with patient history.
+If NULL (default), uses the full dataset from this result.}
+
+\item{\code{dose_range}}{Named list with min and max allowable doses.
+Default: list(min = 0, max = 1000)}
+
+\item{\code{bias_weight}}{Numeric \link{0,1} controlling personalization level.
+0 = fully personalized, 1 = population-based. Default: 0.5 (balanced)}
+
+\item{\code{target_type}}{One of "concentration" (default), "auc_from_zero", or
+"auc_from_last_dose"}
+
+\item{\code{time_offset}}{Optional: time offset for past/future concatenation}
+
+\item{\code{...}}{Additional arguments passed to \link{PM_bestdose}}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Details}{
+BestDose finds optimal dosing regimens to achieve target drug concentrations
+or AUC values. The algorithm uses Bayesian posterior estimation combined with
+dual optimization to balance patient-specific adaptation and population-level
+robustness. By default, uses the \verb{$final}, \verb{$model}, and \verb{$data} objects from
+this result. Most commonly, you will supply a different \code{target} data object.
+}
+
+\subsection{Returns}{
+A \link{PM_bestdose} object containing optimal doses and predictions
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{\dontrun{
+# Load NPAG result
+result <- PM_load(1)
+
+# Create target data
+target <- PM_data$new("target.csv")
+
+# Run BestDose optimization
+bd <- result$bestdose(
+  target = target,
+  dose_range = list(min = 50, max = 500),
+  bias_weight = 0.5
+)
+
+# View results
+print(bd)
+bd$get_doses()
+}
+}
+\if{html}{\out{</div>}}
+
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PM_result-save"></a>}}
