@@ -4,16 +4,16 @@
 \alias{compile_model}
 \title{Compiles the text representation of a model into a binary file.}
 \usage{
-compile_model(model_path, output_path, params, template_path, kind)
+compile_model(model_rs, template_path, output_path, params, kind)
 }
 \arguments{
-\item{model_path}{Path to the model file.}
+\item{model_rs}{Text of the rust model.}
 
-\item{output_path}{Path to save the compiled model.}
+\item{template_path}{Path to the template directory where Rust model is compiled.}
+
+\item{output_path}{Path to save the compiled model and execute during $fit().}
 
 \item{params}{List of model parameters.}
-
-\item{template_path}{Path to the template directory.}
 
 \item{kind}{Kind of model, which can either be "ODE" or "Analytical".}
 }

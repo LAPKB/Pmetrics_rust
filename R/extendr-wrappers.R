@@ -29,14 +29,14 @@ simulate_one <- function(data_path, model_path, spp, kind) .Call(wrap__simulate_
 simulate_all <- function(data_path, model_path, theta, kind) .Call(wrap__simulate_all, data_path, model_path, theta, kind)
 
 #' Compiles the text representation of a model into a binary file.
-#' @param model_path Path to the model file.
-#' @param output_path Path to save the compiled model.
+#' @param model_rs Text of the rust model.
+#' @param template_path Path to the template directory where Rust model is compiled.
+#' @param output_path Path to save the compiled model and execute during $fit().
 #' @param params List of model parameters.
-#' @param template_path Path to the template directory.
 #' @param kind Kind of model, which can either be "ODE" or "Analytical".
 #' @return Result of the compilation process.
 #' @export
-compile_model <- function(model_path, output_path, params, template_path, kind) .Call(wrap__compile_model, model_path, output_path, params, template_path, kind)
+compile_model <- function(model_rs, template_path, output_path, params, kind) .Call(wrap__compile_model, model_rs, template_path, output_path, params, kind)
 
 #' Dummy function to cache compilation artifacts.
 #' @param template_path Path to the template directory.

@@ -556,6 +556,7 @@ PM_sim <- R6::R6Class(
         dots <- list(...)
         old_noise <- c("obsNoise", "obsTimeNoise", "doseNoise", "doseTimeNoise") %in% names(dots)
         msg <- NULL
+        simWithTheta <- FALSE # initialize
         
         if (any(old_noise)) {
           cli::cli_abort(c(
@@ -572,7 +573,7 @@ PM_sim <- R6::R6Class(
         }
         
         # CASE 1 - poppar is PM_result
-        
+  
         if (inherits(poppar, "PM_result")) {
           case <- 1
           final <- poppar$final$data # PM_final_data
@@ -665,18 +666,37 @@ PM_sim <- R6::R6Class(
           
           # not returning because going on to simulate below
           
-          ### This is for loading a saved simulation from file
+        } else if (is.data.frame (poppar) | tibble::is_tibble (poppar)){
           
-          # CASE 8 - last option, poppar is filename
+          theta_ok <- check_valid_theta(poppar) # function at end of file
+          if (length(theta_ok)>0){
+            cli::cli_abort(c("x" = "Your {.arg poppar} object is not valid.", "i" = theta_ok))
+          } else {
+            case <- 8
+            simWithTheta <- TRUE
+            sim <- poppar
+            class(poppar) <- c(class(poppar), "PM_sim_theta")
+            final <- list(popPoints = poppar)
+          }
+          
         } else {
+            
+          # CASE 9 - last option, poppar is filename
           if (file.exists(poppar)) {
             if (grepl("rds$", poppar, perl = TRUE)) { # poppar is rds filename
               sim <- readRDS(poppar)
-            } else { # poppar is a simout.txt name
-              cli::cli_abort(c(
-                "x" = "{poppar} is not a compatible file.",
-                "i" = "Please remake your simulation."
-              ))
+            } else { # poppar is another filename
+              # check if the file has a valid theta format
+              sim <- readr::read_csv(poppar, show_col_types = FALSE)
+              theta_ok <- check_valid_theta(poppar) # function at end of file
+              if (length(theta_ok)>0){
+                cli::cli_abort(c("x" = "Your {.arg poppar} object is not valid.", "i" = theta_ok))
+              } else {
+                case <- 9
+                simWithTheta <- TRUE
+                class(sim) <- c(class(sim), "PM_sim_theta")
+                final <- list(popPoints = sim)
+              }
             }
             # now populate
             if (inherits(sim, c("PMsim", "PM_sim_data"))) {
@@ -685,10 +705,12 @@ PM_sim <- R6::R6Class(
               private$populate(sim, type = "simlist")
             } else if (inherits(sim, "PM_sim")) {
               private$populate(sim, type = "R6sim")
+            } else if (inherits(sim, "PM_sim_theta")) {
+              private$populate(sim, type = "theta")
             } else {
               cli::cli_abort(c("x" = "{poppar} is not a Pmetrics simulation."))
             }
-            return(self) # end, we have loaded a prior sim
+            if (!simWithTheta) {return(self)} # end, we have loaded a prior sim
           } else {
             cli::cli_abort(c("x" = "{poppar} does not exist in the current working directory."))
           }
@@ -697,7 +719,7 @@ PM_sim <- R6::R6Class(
         # If we reach this point, we are creating a new simulation
         
         # check model and data
-        if(case %in% c(2, 3, 7)) { # need model and data if not from PM_result
+        if(case %in% c(2, 3, 7, 8, 9)) { # need model and data if not from PM_result
           if (missing(model)) { model <- "model.txt" } # try the default
           model <- PM_model$new(model) # will abort if can't make PM_model
           
@@ -781,14 +803,14 @@ PM_sim <- R6::R6Class(
         } # end if !is.null(covariate)
         
         # finally, call the simulator, which updates self$data
-        
+         
         private$SIMrun(
           poppar = final, limits = limits, model = model,
           data = data, split = split,
           include = include, exclude = exclude, nsim = nsim,
           predInt = predInt,
           covariate = covariate, usePost = usePost,
-          seed = seed, ode = ode,
+          seed = seed, ode = ode, simWithTheta = simWithTheta,
           noise = noise,
           makecsv = makecsv, outname = outname, clean = clean,
           quiet = quiet,
@@ -898,6 +920,7 @@ PM_sim <- R6::R6Class(
       include, exclude, nsim, predInt,
       covariate, usePost,
       seed, ode,
+      simWithTheta,
       noise,
       makecsv, outname, clean, quiet,
       nocheck, overwrite, msg) {
@@ -906,7 +929,7 @@ PM_sim <- R6::R6Class(
         
         ###### POPPAR
         
-        npar <- nrow(poppar$popCov)
+        npar <- ncol(poppar$popPoints) - 1 # number of parameters, minus prob column
         
         
         ###### MODEL
@@ -952,7 +975,7 @@ PM_sim <- R6::R6Class(
         # POSTERIORS ----------------------------------------------
         
         # check if simulating with the posteriors and if so, get all subject IDs
-        if (usePost) {
+        if (usePost & !simWithTheta) {
           if (length(poppar$postMean) == 0) {
             cli::cli_abort(c(
               "x" = "Posterior parameters not found.",
@@ -982,7 +1005,11 @@ PM_sim <- R6::R6Class(
         
         
         # PARAMETER LIMITS --------------------------------------------------------
-     
+        if (simWithTheta & !all(is.null(limits))){
+          cli::cli_warn(c("i" = "Parameter limits are ignored when simulating with fixed theta values."))
+          limits <- NULL
+        }
+        
         if (all(is.null(limits))) { # limits are omitted altogether
           parLimits <- tibble::tibble(par = 1:npar , min = rep(-Inf, npar), max = rep(Inf, npar))
         } else if (!any(is.na(limits)) & is.vector(limits)) { # no limit is NA and specified as vector of length 1 or 2
@@ -1014,13 +1041,13 @@ PM_sim <- R6::R6Class(
             cli::cli_abort(c("x" = "A manual {.arg limits} argument must be a data frame or list with elements {.val par}, {.val min}, and {.val max}."))
           }
         }
-       
+        
         if (!is.null(parLimits) && nrow(parLimits) != npar) {
           cli::cli_abort(c("x" = "The number of rows in {.arg limits} must match the number of parameters in the model."))
         }
-      
-      
-      
+        
+        
+        
         
         # COVARIATES ----------------------------------------------------
         
@@ -1028,6 +1055,11 @@ PM_sim <- R6::R6Class(
         # augment prior with covariate correlations and modify model file
         
         simWithCov <- FALSE # default is no covariates
+        
+        if (simWithTheta & !all(is.null(covariate))){
+          cli::cli_warn(c("i" = "Simulation with covariates ignored when simulating with fixed theta values.", " " = "Add covariates to theta and to model as primary parameters to simulate."))
+          limits <- NULL
+        }
         
         if(!is.null(covariate)) {
           simWithCov <- TRUE
@@ -1290,9 +1322,13 @@ PM_sim <- R6::R6Class(
       
       # CALL SIMULATOR ----------------------------------------------------------------
       
-      
       template <- PM_data$new(template, quiet = TRUE)
       mod <- PM_model$new(arg_list, quiet = TRUE)
+      
+      if (simWithTheta & length(postToUse) > 0){
+        cli::cli_warn(c("i" = "Simulation with posteriors not possible when simulating with fixed theta values."))
+        postToUse <- character(0)
+      }
       
       if (length(postToUse) > 0) {
         # simulating from posteriors, each posterior matched to a subject
@@ -1354,19 +1390,23 @@ PM_sim <- R6::R6Class(
         
       } else { # postToUse is false
         
-        # set theta as nsim rows drawn from prior
-        thisPrior <- private$getSimPrior(
-          i = 1,
-          poppar = poppar,
-          split = split,
-          postToUse = NULL,
-          limits = limits,
-          seed = seed[1],
-          nsim = nsim,
-          toInclude = toInclude,
-          msg = msg
-        )
-        
+        if(!simWithTheta){
+          # set theta as nsim rows drawn from prior
+          thisPrior <- private$getSimPrior(
+            i = 1,
+            poppar = poppar,
+            split = split,
+            postToUse = NULL,
+            limits = limits,
+            seed = seed[1],
+            nsim = nsim,
+            toInclude = toInclude,
+            msg = msg
+          )
+        } else {
+     
+          thisPrior <- list(thetas = as.data.frame(poppar$popPoints)) 
+        }
         self$data <- private$getSim(thisPrior, template, mod, noise2, msg = msg)
       }
       
@@ -1589,6 +1629,17 @@ PM_sim <- R6::R6Class(
           class(simout$data) <- c("PM_sim_data", "list") # ensure class is correct
         }
         self$data <- simout$data
+      } else if (type == "theta") {
+        theta_list <- list(
+          obs = NA,
+          amt = NA,
+          parValues = simout,
+          totalSets = NA,
+          totalMeans = NA,
+          totalCov = NA
+        )
+        class(theta_list) <- c("PM_sim_data", "list") # ensure class is correct
+        self$data <- theta_list
       }
       return(self)
     }, # end populate
@@ -2479,7 +2530,7 @@ print.summary.PM_sim <- function(x, ...) {
 }
 
 
-
+########### Internal functions #####################################################
 
 
 # generate random samples from multivariate, multimodal normal distribution
@@ -2573,4 +2624,12 @@ return(list(
   total_nsim = total_nsim
 ))
 
+}
+
+check_valid_theta <- function(df){
+  theta_df <- character(0)
+  if (!"prob" %in% names(df)) {theta_df <- c(theta_df, "Missing {.arg prob} column.")}
+  if (!all(purrr::map_lgl(df, ~ all(is.numeric(.x))))) {theta_df <- c(theta_df, "All columns must be numeric.")} 
+  if (!all(purrr::map_lgl(df, ~all(!is.na(.x))))) {theta_df <- c("No missing values permitted.")} # check for NAs
+  return(theta_df)
 }
