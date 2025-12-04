@@ -19,7 +19,7 @@
     cli::cli_h2("Welcome to Pmetrics {installedVersion}!")
     ul <- cli::cli_ul()
     cli::cli_li("For more information or to report issues, visit our GitHub page: https://github.com/LAPKB/Pmetrics.")
-    cli::cli_li("For documentation, use {.code PM_manual}.")
+    cli::cli_li("For documentation, use {.code PM_manual()}.")
     cli::cli_li("View user options with {.code setPMoptions()}.")
     cli::cli_li("Model library loaded. View with {.code model_lib()}.")
     if (!is.na(latestR)){
