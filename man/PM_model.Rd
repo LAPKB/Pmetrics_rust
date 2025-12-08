@@ -16,8 +16,9 @@ via the \verb{$fit()} method to conduct a
 population analysis, i.e. estimating the probability distribution of model equation
 paramter values in the population. The PM_model object is created using the
 a model building app (coming soon), by defining a list
-directly in R, or by reading a model text file. See the vignette on models
-for details.
+directly in R, or by reading a model text file. When reading a model text file,
+the list code is generated and copied to the clipboard for pasting in to scripts.
+Model files will be deprecated in future versions of Pmetrics.
 
 \strong{Some notes on the example at the end of this help page:}
 \itemize{
@@ -94,7 +95,6 @@ the original arguments into Rust}
 \item \href{#method-PM_model-map}{\code{PM_model$map()}}
 \item \href{#method-PM_model-sim}{\code{PM_model$sim()}}
 \item \href{#method-PM_model-compile}{\code{PM_model$compile()}}
-\item \href{#method-PM_model-update}{\code{PM_model$update()}}
 \item \href{#method-PM_model-clone}{\code{PM_model$clone()}}
 }
 }
@@ -102,11 +102,9 @@ the original arguments into Rust}
 \if{html}{\out{<a id="method-PM_model-new"></a>}}
 \if{latex}{\out{\hypertarget{method-PM_model-new}{}}}
 \subsection{Method \code{new()}}{
-This is the method to create a new \code{PM_model} object. If all arguments are \code{NULL},
-e.g. \code{mod <- PM_model$new()} the model builder shiny app will launch by a call to \code{\link[=build_model]{build_model()}},
-which will return the model object upon exit.
+This is the method to create a new \code{PM_model} object.
 
-Otherwise, the first parameter allows creation of a model from a variety of pre-existing
+The first argument allows creation of a model from a variety of pre-existing
 sources, and if used, all the subsequent arguments will be ignored. If a model
 is defined on the fly, the arguments form the building blocks. Blocks are of two types:
 \itemize{
@@ -167,7 +165,8 @@ arguments will be ignored. \code{x} creates a \code{PM_model} from
 existing appropriate input, which can be one of the following:
 \itemize{
 \item Quoted name of a model text file in the
-working directory which will be read and passed to Rust engine.
+working directory which will be read and passed to Rust engine. \strong{Note:} Model
+text files are being deprecated in future versions of Pmetrics.
 \item List that defines the model directly in R. This will be in the same format as if
 all the subsequent arguments were used. For example:
 
@@ -697,26 +696,6 @@ file to a binary file that can be used for fitting or simulation.
 If the model is already compiled, the method does nothing.
 }
 
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-PM_model-update"></a>}}
-\if{latex}{\out{\hypertarget{method-PM_model-update}{}}}
-\subsection{Method \code{update()}}{
-Update the model using recursive lists of changes and recompile the updated model.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PM_model$update(...)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{Named elements corresponding to the blocks in the model,
-such as "pri", "cov", "sec", "eqn", "ini", "lag", "fa", "out", and "err".
-For each block, create a list of changes, which may be additions, edits, or deletions.
-For deletions, set the value to \code{NULL}.}
-}
-\if{html}{\out{</div>}}
-}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PM_model-clone"></a>}}
