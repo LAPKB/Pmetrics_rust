@@ -347,7 +347,7 @@ PM_final <- R6::R6Class(
           
           # ranges
           ab <- config$parameters[[1]] %>% tibble::as_tibble() %>% dplyr::rename(par = name, min = lower, max = upper)
-        
+          
           
           gridpts <- config$prior$Sobol[1]
           
@@ -363,6 +363,7 @@ PM_final <- R6::R6Class(
             popMed = popMed,
             postMean = postMean,
             postSD = postSD,
+            postVar = postVar,
             postMed = postMed,
             postCov = postCov,
             postCor = postCor,
