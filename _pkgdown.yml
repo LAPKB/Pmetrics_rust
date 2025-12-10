@@ -1,0 +1,139 @@
+url: https://lapkb.github.io/Pmetrics_rust/
+template:
+  bootstrap: 5
+  bootswatch: flatly
+development:
+  mode: auto
+  version_label: default
+navbar:
+  structure:
+    left:
+    - intro
+    - reference
+    right:
+    - search
+    - github
+  components:
+    intro:
+      text: Book
+      href: articles/pmetrics.html
+    
+home:
+  sidebar:
+    structure:
+    - links
+    - license
+    - community
+    - citation
+    - authors
+    - dev
+    components:
+      custom:
+        title: Discussion
+        text: Discussion board
+        href: https://github.com/LAPKB/Pmetrics/discussions
+reference:
+- title: R6 objects
+  desc: Pmetrics R6 objects
+- contents:
+  - PM_data
+  - PM_model
+  - PM_cycle
+  - PM_cov
+  - PM_final
+  - PM_op
+  - PM_pop
+  - PM_opt
+  - PM_post
+  - PM_sim
+  - PM_load
+  - PM_result
+  - PM_valid
+- title: Helpers
+  desc: Helper functions for R6 object creations
+- contents:
+  - ab
+  - additive
+  - add_renal
+  - cor2cov
+  - model_lib
+  - msd
+  - proportional
+  - interp
+  - PMtree
+  - starts_with("make")
+- title: Plot
+  desc: Functions for plotting Pmetrics output
+- contents:
+  - starts_with("plot")
+  - ab_line
+  - add_shapes
+  - add_smooth
+  - export_plotly
+  - plotlygg
+  - sub_plot
+  - click_plot
+  - getPalettes
+  - getDefaultColors
+  - rgba_to_rgb
+  - opposite_color
+- title: Summary
+  desc: Functions for summarizing Pmetrics output
+- contents: 
+  - starts_with("summary")
+  - PM_report
+- title: Print
+  desc: Functions for printing Pmetrics output
+- contents: starts_with("print")
+- title: Auxilliary
+  desc: Auxilliary functions
+- contents:
+  - all_is_numeric
+  - build_model
+  - build_plot
+  - qgrowth
+  - mtsknn.eq
+  - zBMI
+  - ss.PK
+  - PM_compare
+  - PMgetCRCL
+  - PM_step
+  - starts_with("get")
+- title: Datasets
+  desc: Pmetrics datasets
+- contents: has_keyword("datasets")
+- title: Data processing
+  desc: Data processing and interconversion
+- contents:
+  - NM2PM
+  - PMwrk2csv
+  - PMmatrixRelTime
+  - PMreadMatrix
+  - PMwriteMatrix
+- title: Utility
+  desc: Utility functions
+- contents:
+  - PM_build
+  - PM_help
+  - PMcheck
+  - PMpatch
+  - PMtest
+  - PM_tutorial
+  - setPMoptions
+- title: Internal
+  desc: Internal and low-level functions
+- contents:
+  - compile_model
+  - dummy_compile
+  - simulate_all
+  - simulate_one
+  - fit
+  - is_cargo_installed
+  - model_parameters
+  - temporary_path
+- title: Reference
+  desc: Reference functions
+- contents:
+  - PM_manual
+  - Pmetrics-package
+

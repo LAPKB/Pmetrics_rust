@@ -1,6 +1,6 @@
 
 
-# Pmetrics <a href="https://lapkb.github.io/Pmetrics/"><img src="Images/Pmetrics_logo.png" align="right" height="139" alt="Pmetrics website" /></a>
+# Pmetrics <a href="https://lapkb.github.io/Pmetrics/"><img src="man/figures/Pmetrics_logo.png" align="right" height="100" width = "100" alt="Pmetrics" /></a>
 
 ::: {.callout-warning}
 This is a development branch of Pmetrics using a new backend written in Rust. The repository for the current stable release is [LAPKB/Pmetrics](https://github.com/LAPKB/Pmetrics).
@@ -26,19 +26,19 @@ The open source code for the Pmetrics R package is hosted here on Github. LAPKB 
 
 To install and use Pmetrics, you will need **R**, **Rust**, and the **Pmetrics** package appropriate for your system. 
 
-<a href="https://r-project.org"><img src="Images/Rlogo.png" align="left" height="40" /></a><br><br>
+<a href="https://r-project.org"><img src="man/figures/Rlogo.png" align="left" height="40" width="40" alt="R" /></a><br><br>
 You can download and install **R** from the [Comprehensive R Archive Network (CRAN)](https://cran.r-project.org/). In addition, we *strongly* recommend a third-party integrated development environment (IDE) to use R and Pmetrics rather than the rudimentary IDE that comes with R. We use all the IDEs below when developing and working with Pmetrics. 
 
 * [RStudio](https://posit.co/download/rstudio-desktop/) is the oldest and most stable IDE, developed by [Posit](https://posit.co). Most users who only program in R use Rstudio. It has a simple interface with many R-specific buttons and menus. It is relatively easy to learn and use, but does not support other programming languages.
 * [Positron](https://positron.posit.co) is a newer alternative also from Posit. Posit are now mostly developing Positron rather than Rstudio. Positron primarily supports users who work in R and Python. However, it is built upon [VS Code](https://code.visualstudio.com), which gives Positron access to thousands of extensions, including multiple AI tools to assist with coding and data analysis, and Positron can support additional programming languages. It is far more powerful than Rstudio, but has a steeper learning curve and currently fewer R-specific buttons and menus. VS Code users will find Positron familiar.
 * [VS Code](https://code.visualstudio.com) itself can be used for R, but it is best suited for experienced coders who also use other programming languages.
 
-<a href="https://rust-lang.org"><img src="Images/rust-logo-64x64.png" align="left" height="40" alt="Rust website" /></a><br><br>
+<a href="https://rust-lang.org"><img src="man/figures/rust-logo-64x64.png" align="left" height="40" width = "40" alt="Rust" /></a><br><br>
 **Rust** is the language used by pharmsol for the backend of Pmetrics and all the heavy "number crunching". Rust is modern, fast, reliable, widely used, and extremely well supported. It works on all major operating systems.
 
 Follow the instructions on the [Rust website](https://www.rust-lang.org/tools/install) to install Rust on your system.
 
-<img src="Images/Pmetrics_logo.png" align="left" height="40" /><br><br>
+<img src="man/figures/Pmetrics_logo.png" align="left" height="40" width = "40" alt="Pmetrics" /><br><br>
 The compiled versions of **Pmetrics** for MacOS, Windows and Linux are hosted on [r-universe](https://lapkb.r-universe.dev/Pmetrics). Follow these easy steps to install the correct version for your system.
 
 1.  Add the LAPKB r-universe repository to your list of repositories by adding this code to your `.Rprofile` script, which ensures that R will always include the LAPKB repository when installing or updating packages, even after you restart or update R.
