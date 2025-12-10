@@ -9,7 +9,7 @@ requesting help.
 ## Usage
 
 ``` r
-PM_help(copy = FALSE)
+PM_help(copy = TRUE)
 ```
 
 ## Arguments
@@ -17,7 +17,7 @@ PM_help(copy = FALSE)
 - copy:
 
   Logical. If `TRUE`, copies the system information to clipboard.
-  Default is `FALSE`.
+  Default is `TRUE`.
 
 ## Value
 

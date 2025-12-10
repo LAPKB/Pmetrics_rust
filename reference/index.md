@@ -264,14 +264,16 @@ Utility functions
 
 - [`PM_build()`](https://lapkb.github.io/Pmetrics_rust/reference/PM_build.md)
   **\[stable\]** : Build Pmetrics
+- [`PM_help()`](https://lapkb.github.io/Pmetrics_rust/reference/PM_help.md)
+  **\[stable\]** : Get Help and Report Issues
 - [`PMcheck()`](https://lapkb.github.io/Pmetrics_rust/reference/PMcheck.md)
   **\[superseded\]** : Check Pmetrics Inputs for Errors
 - [`PMpatch()`](https://lapkb.github.io/Pmetrics_rust/reference/PMpatch.md)
   : Download and install Pmetrics patches
 - [`PMtest()`](https://lapkb.github.io/Pmetrics_rust/reference/PMtest.md)
   **\[stable\]** : Test Pmetrics
-- [`PM_help()`](https://lapkb.github.io/Pmetrics_rust/reference/PM_help.md)
-  **\[stable\]** : Get Help and Report Issues
+- [`PM_tutorial()`](https://lapkb.github.io/Pmetrics_rust/reference/PM_tutorial.md)
+  **\[stable\]** : Pmetrics tutorial
 - [`setPMoptions()`](https://lapkb.github.io/Pmetrics_rust/reference/setPMoptions.md)
   **\[stable\]** : Set Pmetrics User Options
 
