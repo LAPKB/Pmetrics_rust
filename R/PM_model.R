@@ -93,12 +93,12 @@ PM_model <- R6::R6Class(
     #' sources, and if used, all the subsequent arguments will be ignored. If a model
     #' is defined on the fly, the arguments form the building blocks. Blocks are of two types:
     #'
-    #' * **Vectors** define *primary parameters*, *covariates*,
+    #' * **Lists** define *primary parameters*, *covariates*,
     #' and *error models*. These
     #' portions of the model have specific and defined creator functions and no additional
     #' R code is permissible. They take this form:
     #'     ```
-    #'     block_name = c(
+    #'     block_name = list(
     #'       var1 = creator(),
     #'       var2 = creator()
     #'     )
@@ -136,7 +136,7 @@ PM_model <- R6::R6Class(
     #' all the subsequent arguments were used. For example:
     #'     ```
     #'     mod_list <- list(
-    #'      pri = c(...),
+    #'      pri = list(...),
     #'      eqn = function(){...},
     #'      out = function(){...},
     #'      err = c(...)
@@ -148,11 +148,11 @@ PM_model <- R6::R6Class(
     #'
     #' See the user manual [PM_manual()] for more help on directly defining models in R.
     #' @param pri The first of the arguments used if `x` is not specified. This is
-    #' a named vector of primary parameters, which are the model parameters that
+    #' a named list of primary parameters, which are the model parameters that
     #' are estimated in the population analysis. They are specified
     #' by one of two creator functions: [ab()] or [msd()]. For example,
     #' ```
-    #' pri = c(
+    #' pri = list(
     #'   Ke = ab(0, 5),
     #'   V = msd(100, 10)
     #' )
@@ -160,10 +160,10 @@ PM_model <- R6::R6Class(
     #' The [ab()] creator specifies the
     #' initial range `[a, b]` of the parameter, while the [msd()] creator specifies
     #' the initial mean and standard deviation of the parameter.
-    #' @param cov A vector whose names are some or all of the covariates in the data file.
+    #' @param cov A list whose names are some or all of the covariates in the data file.
     #' Unlike prior versions of Pmetrics, as of 3.0.0, they do not have to be listed in the same order
     #' as in the data file, and they do not need to be all present.
-    #' **Only those covariates used in model equations need to be declared here.**
+    #' **Only those covariates you wish to use in model equations or analyze for relationships to model parameters need to be declared here.**
     #' Values for each element in the covariate vector are the [interp()] creator function to declare
     #' how each covariate is interpolated between entries in the data. The default argument
     #' for [interp()] is "lm" which means that values will be linearly interpolated
@@ -173,7 +173,7 @@ PM_model <- R6::R6Class(
     #'
     #' For example:
     #' ```
-    #' cov = c(
+    #' cov = list(
     #'   wt = interp(), # will be linear by default
     #'   visit = interp("none")
     #' )
@@ -209,11 +209,11 @@ PM_model <- R6::R6Class(
     #'     here is a code snippet illustrating the inclusion of the required parameter.
     #'     ```
     #'     mod <- PM_model$new(
-    #'       pri = c(
+    #'       pri = list(
     #'         ke0 = ab(0, 5),
     #'         v = ab(0, 100)
     #'       ),
-    #'       cov = c(
+    #'       cov = list(
     #'         crcl = interp()
     #'       ),
     #'       eqn = function(){
@@ -248,7 +248,7 @@ PM_model <- R6::R6Class(
     #' The function must have no arguments,
     #' and the equations must be defined
     #' in R syntax The equations must be defined in the form of
-    #' `tlag[i] = par`, where `tlag[i]` is the lag for drug (input) `i` and
+    #' `lag[i] = par`, where `lag[i]` is the lag for drug (input) `i` and
     #' `par` is the lag parameter used in the `pri` block.
     #'
     #' For example, if
@@ -256,7 +256,7 @@ PM_model <- R6::R6Class(
     #' this code could be used to model delayed absorption if an antacid is present.
     #' ```
     #' lag = function() {
-    #'   tlag[1] = if(antacid == 1) lag1 else 0
+    #'   lag[1] = if(antacid == 1) lag1 else 0
     #' }
     #' ```
     #' As for `eqn`, additional equations in R code can be defined in this block,
@@ -332,7 +332,7 @@ PM_model <- R6::R6Class(
     #'   y[1] = x[1]/v
     #'   y[2] = x[4]
     #' },
-    #' err = c(
+    #' err = list(
     #'  proportional(2, c(0.1, 0.15, 0, 0))
     #' )
     #' ```
@@ -355,7 +355,7 @@ PM_model <- R6::R6Class(
     #' sources of observations in the data, the error models
     #' could be defined as:
     #' ```
-    #' err = c(
+    #' err = list(
     #'   proportional(2, c(0.1, 0.15, 0, 0)),
     #'   proportional(3, c(0.05, 0.1, 0, 0)),
     #'   additive(1, c(0.2, 0.25, 0, 0))
@@ -370,7 +370,7 @@ PM_model <- R6::R6Class(
     #' simply use a single error model embedded in [replicate()] , e.g.,
     #' for 3 outputs with the same error model:
     #' ```
-    #' err = c(
+    #' err = list(
     #'   replicate(3, proportional(2, c(0.1, 0.15, 0, 0)))
     #' )
     #' ```
@@ -410,6 +410,9 @@ PM_model <- R6::R6Class(
               ))
             }
             self$arg_list <- private$R6fromFile(x) # read file and populate fields
+            cli::cli_inform(c("i" = "{.strong Note:} Model files will be deprecated in future versions of Pmetrics."))
+            self$copy() # copy to clipboard
+            
           } else if (is.list(x)) { # x is a list in R
             purrr::walk(model_sections, \(s) {
               if (s %in% names(x)) {
@@ -1394,8 +1397,127 @@ PM_model <- R6::R6Class(
         )
         
         return(invisible(self))
-      } # end compile method
+      }, # end compile method
+      #' @description
+      #' Copy model code to clipboard.
+      #' @details
+      #' This method copies the R code to create the model to the clipboard.
+      #' This is useful for saving the model code in a script, as model files
+      #' will be deprecated in future versions of Pmetrics.
+      copy = function() {
+        arg_list <- self$arg_list
+
+        # pri
+        pri <- c(
+          "  pri = list(\n",
+          
+          purrr::map_chr(names(arg_list$pri), \(i) {
+            sprintf("    %s = ab(%.3f, %.3f)", i, arg_list$pri[[i]]$min, arg_list$pri[[i]]$max)
+          }) %>% paste(collapse = ",\n"),
+          "\n  ),"
+        )
+        # cov
+        if ("cov" %in% names(arg_list)) {
+          cov <- c(
+            "\n  cov = list(\n",
+            purrr::map_chr(names(arg_list$cov), \(i) {
+              sprintf("    %s = interp(%s)", i, ifelse(arg_list$cov[[i]] == 0, "\"none\"", ""))
+            }) %>% paste(collapse = ",\n"),
+            "\n  ),"
+          )
+        } else {
+          cov <- NULL
+        }
+        # sec
+        if (!is.null(arg_list$sec)) {
+          sec <- c(
+            "\n  sec = ",
+            paste0(deparse(arg_list$sec), collapse = "\n  "),
+            ","
+          )
+        } else {
+          sec <- NULL
+        }
+        # fa
+        if (!is.null(arg_list$fa)) {
+          fa <- c(
+            "\n  fa = ",
+            paste0(deparse(arg_list$fa), collapse = "\n  "),
+            ","
+          )
+        } else {
+          fa <- NULL
+        }
+        # ini
+        if (!is.null(arg_list$ini)) {
+          ini <- c(
+            "\n  ini = ",
+            paste0(deparse(arg_list$ini), collapse = "\n  "),
+            ","
+          )
+        } else {
+          ini <- NULL
+        }
+        # lag
+        if (!is.null(arg_list$lag)) {
+          lag <- c(
+            "\n  lag = ",
+            paste0(deparse(arg_list$lag), collapse = "\n  "),
+            ","
+          )
+        } else {
+          lag <- NULL
+        }
+        # eqn
+        if (!is.null(arg_list$eqn)) {
+          eqn <- c(
+            "\n  eqn = ",
+            paste0(deparse(arg_list$eqn), collapse = "\n  "),
+            ","
+          )
+        } else {
+          eqn <- NULL
+        }
+        # out
+        out <- c(
+          "\n  out = ",
+          paste0(deparse(arg_list$out), collapse = "\n  "),
+          ","
+        )
+        # err
+        err <- c(
+          "\n  err = list(\n",
+          purrr::map_chr((arg_list$err), \(i) {
+            sprintf("    %s(%i, c(%.1f, %.1f, %.1f, %.1f)%s)", 
+            i$type,
+            i$initial,
+            ifelse(length(i$coeff) >= 1, i$coeff[1], 0),
+            ifelse(length(i$coeff) >= 2, i$coeff[2], 0),
+            ifelse(length(i$coeff) >= 3, i$coeff[3], 0),
+            ifelse(length(i$coeff) >= 4, i$coeff[4], 0),
+            ifelse(i$fixed, ", fixed = TRUE", "")
+          )
+        }) %>% paste(collapse = ",\n"),
+        "\n  )"
+      )
       
+      model_copy <- c(
+        "mod <- PM_model$new(\n",
+        paste0(c(pri, cov, sec, fa, ini, lag, eqn, out, err), collapse = ""),
+        "\n)"
+      )
+      cli::cli_inform(c(
+        ">" = "Model code copied to clipboard.",
+        ">" = "Paste the code into your script for future use, renaming the assigned variable if needed."))
+      if (requireNamespace("clipr", quietly = TRUE)) {
+        clipr::write_clip(model_copy)
+      } else {
+        cli::cli_inform(c("i" = "Please install the {.pkg clipr} package to enable clipboard functionality."))
+        cat(model_copy, sep = "\n")
+      }
+      return(invisible(self))
+      
+      } # end copy
       
     ), # end public list
     private = list(
@@ -1562,12 +1684,9 @@ PM_model <- R6::R6Class(
         
         cat(msg)
         flush.console()
-        private$copy(arg_list) # copy to clipboard for user
         return(arg_list)
       }, # end R6fromFile
-      
-      
-      
+  
       write_model_to_rust = function(file_path = "main.rs") {
         # Check if model_list is not NULL
         if (is.null(self$model_list)) {
@@ -1601,114 +1720,7 @@ PM_model <- R6::R6Class(
       },
       get_primary = function() {
         return(tolower(self$model_list$parameters))
-      },
-      copy = function(arg_list) {
-        # pri
-        pri <- c(
-          "  pri = list(\n",
-          
-          purrr::map_chr(names(arg_list$pri), \(i) {
-            sprintf("    %s = ab(%.3f, %.3f)", i, arg_list$pri[[i]]$min, arg_list$pri[[i]]$max)
-          }) %>% paste(collapse = ",\n"),
-          "\n  ),"
-        )
-        # cov
-        if ("cov" %in% names(arg_list)) {
-          cov <- c(
-            "\n  cov = list(\n",
-            purrr::map_chr(names(arg_list$cov), \(i) {
-              sprintf("    %s = interp(%s)", i, ifelse(arg_list$cov[[i]] == 0, "\"none\"", ""))
-            }) %>% paste(collapse = ",\n"),
-            "\n  ),"
-          )
-        } else {
-          cov <- NULL
-        }
-        # sec
-        if (!is.null(arg_list$sec)) {
-          sec <- c(
-            "\n  sec = ",
-            paste0(deparse(arg_list$sec), collapse = "\n  "),
-            ","
-          )
-        } else {
-          sec <- NULL
-        }
-        # fa
-        if (!is.null(arg_list$fa)) {
-          fa <- c(
-            "\n  fa = ",
-            paste0(deparse(arg_list$fa), collapse = "\n  "),
-            ","
-          )
-        } else {
-          fa <- NULL
-        }
-        # ini
-        if (!is.null(arg_list$ini)) {
-          ini <- c(
-            "\n  ini = ",
-            paste0(deparse(arg_list$ini), collapse = "\n  "),
-            ","
-          )
-        } else {
-          ini <- NULL
-        }
-        # lag
-        if (!is.null(arg_list$lag)) {
-          lag <- c(
-            "\n  lag = ",
-            paste0(deparse(arg_list$lag), collapse = "\n  "),
-            ","
-          )
-        } else {
-          lag <- NULL
-        }
-        # eqn
-        if (!is.null(arg_list$eqn)) {
-          eqn <- c(
-            "\n  eqn = ",
-            paste0(deparse(arg_list$eqn), collapse = "\n  "),
-            ","
-          )
-        } else {
-          eqn <- NULL
-        }
-        # out
-        out <- c(
-          "\n  out = ",
-          paste0(deparse(arg_list$out), collapse = "\n  "),
-          ","
-        )
-        # err
-        err <- c(
-          "\n  err = list(\n",
-          purrr::map_chr((arg_list$err), \(i) {
-            sprintf("    %s(%i, c(%.1f, %.1f, %.1f, %.1f)%s)", 
-            i$type,
-            i$initial,
-            ifelse(length(i$coeff) >= 1, i$coeff[1], 0),
-            ifelse(length(i$coeff) >= 2, i$coeff[2], 0),
-            ifelse(length(i$coeff) >= 3, i$coeff[3], 0),
-            ifelse(length(i$coeff) >= 4, i$coeff[4], 0),
-            ifelse(i$fixed, ", fixed = TRUE", "")
-          )
-        }) %>% paste(collapse = ",\n"),
-        "\n  )"
-      )
-      
-      model_copy <- c(
-        "mod <- PM_model$new(\n",
-        paste0(c(pri, cov, sec, fa, ini, lag, eqn, out, err), collapse = ""),
-        "\n)"
-      )
-      cli::cli_inform(c("i" = "{.strong Note:} Model files will be deprecated in future versions of Pmetrics.",
-        ">" = "Model code copied to clipboard.",
-        ">" = "Please paste the code into your script for future use, renaming the assigned variable if needed."))
-      clipr::write_clip(model_copy)
-      return(invisible(self))
-      
-      } # end copy
+      }  
   ) # end private
 ) # end R6Class PM_model
 

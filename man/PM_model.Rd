@@ -95,6 +95,7 @@ the original arguments into Rust}
 \item \href{#method-PM_model-map}{\code{PM_model$map()}}
 \item \href{#method-PM_model-sim}{\code{PM_model$sim()}}
 \item \href{#method-PM_model-compile}{\code{PM_model$compile()}}
+\item \href{#method-PM_model-copy}{\code{PM_model$copy()}}
 \item \href{#method-PM_model-clone}{\code{PM_model$clone()}}
 }
 }
@@ -108,12 +109,12 @@ The first argument allows creation of a model from a variety of pre-existing
 sources, and if used, all the subsequent arguments will be ignored. If a model
 is defined on the fly, the arguments form the building blocks. Blocks are of two types:
 \itemize{
-\item \strong{Vectors} define \emph{primary parameters}, \emph{covariates},
+\item \strong{Lists} define \emph{primary parameters}, \emph{covariates},
 and \emph{error models}. These
 portions of the model have specific and defined creator functions and no additional
 R code is permissible. They take this form:
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{block_name = c(
+\if{html}{\out{<div class="sourceCode">}}\preformatted{block_name = list(
   var1 = creator(),
   var2 = creator()
 )
@@ -171,7 +172,7 @@ text files are being deprecated in future versions of Pmetrics.
 all the subsequent arguments were used. For example:
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{mod_list <- list(
- pri = c(...),
+ pri = list(...),
  eqn = function()\{...\},
  out = function()\{...\},
  err = c(...)
@@ -185,11 +186,11 @@ prior example: \code{PM_model$new(mod)}
 See the user manual \code{\link[=PM_manual]{PM_manual()}} for more help on directly defining models in R.}
 
 \item{\code{pri}}{The first of the arguments used if \code{x} is not specified. This is
-a named vector of primary parameters, which are the model parameters that
+a named list of primary parameters, which are the model parameters that
 are estimated in the population analysis. They are specified
 by one of two creator functions: \code{\link[=ab]{ab()}} or \code{\link[=msd]{msd()}}. For example,
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{pri = c(
+\if{html}{\out{<div class="sourceCode">}}\preformatted{pri = list(
   Ke = ab(0, 5),
   V = msd(100, 10)
 )
@@ -199,10 +200,10 @@ The \code{\link[=ab]{ab()}} creator specifies the
 initial range \verb{[a, b]} of the parameter, while the \code{\link[=msd]{msd()}} creator specifies
 the initial mean and standard deviation of the parameter.}
 
-\item{\code{cov}}{A vector whose names are some or all of the covariates in the data file.
+\item{\code{cov}}{A list whose names are some or all of the covariates in the data file.
 Unlike prior versions of Pmetrics, as of 3.0.0, they do not have to be listed in the same order
 as in the data file, and they do not need to be all present.
-\strong{Only those covariates used in model equations need to be declared here.}
+\strong{Only those covariates you wish to use in model equations or analyze for relationships to model parameters need to be declared here.}
 Values for each element in the covariate vector are the \code{\link[=interp]{interp()}} creator function to declare
 how each covariate is interpolated between entries in the data. The default argument
 for \code{\link[=interp]{interp()}} is "lm" which means that values will be linearly interpolated
@@ -212,7 +213,7 @@ i.e., a carry-forward strategy.
 
 For example:
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{cov = c(
+\if{html}{\out{<div class="sourceCode">}}\preformatted{cov = list(
   wt = interp(), # will be linear by default
   visit = interp("none")
 )
@@ -253,11 +254,11 @@ included in model blocks exactly as named. For example, in a one-compartment mod
 here is a code snippet illustrating the inclusion of the required parameter.
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{mod <- PM_model$new(
-  pri = c(
+  pri = list(
     ke0 = ab(0, 5),
     v = ab(0, 100)
   ),
-  cov = c(
+  cov = list(
     crcl = interp()
   ),
   eqn = function()\{
@@ -296,7 +297,7 @@ to global availability when defined in \code{sec}. They can be added to either
 The function must have no arguments,
 and the equations must be defined
 in R syntax The equations must be defined in the form of
-\code{tlag[i] = par}, where \code{tlag[i]} is the lag for drug (input) \code{i} and
+\code{lag[i] = par}, where \code{lag[i]} is the lag for drug (input) \code{i} and
 \code{par} is the lag parameter used in the \code{pri} block.
 
 For example, if
@@ -304,7 +305,7 @@ For example, if
 this code could be used to model delayed absorption if an antacid is present.
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{lag = function() \{
-  tlag[1] = if(antacid == 1) lag1 else 0
+  lag[1] = if(antacid == 1) lag1 else 0
 \}
 }\if{html}{\out{</div>}}
 
@@ -388,7 +389,7 @@ out = function()\{
   y[1] = x[1]/v
   y[2] = x[4]
 \},
-err = c(
+err = list(
  proportional(2, c(0.1, 0.15, 0, 0))
 )
 }\if{html}{\out{</div>}}
@@ -412,7 +413,7 @@ For example, if there are three output equations corresponding to three
 sources of observations in the data, the error models
 could be defined as:
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{err = c(
+\if{html}{\out{<div class="sourceCode">}}\preformatted{err = list(
   proportional(2, c(0.1, 0.15, 0, 0)),
   proportional(3, c(0.05, 0.1, 0, 0)),
   additive(1, c(0.2, 0.25, 0, 0))
@@ -428,7 +429,7 @@ If all the output equations have the same error model, you can
 simply use a single error model embedded in \code{\link[=replicate]{replicate()}} , e.g.,
 for 3 outputs with the same error model:
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{err = c(
+\if{html}{\out{<div class="sourceCode">}}\preformatted{err = list(
   replicate(3, proportional(2, c(0.1, 0.15, 0, 0)))
 )
 }\if{html}{\out{</div>}}}
@@ -694,6 +695,22 @@ This method write the model to a Rust file in a temporary path,
 updates the \code{binary_path} field for the model, and compiles that
 file to a binary file that can be used for fitting or simulation.
 If the model is already compiled, the method does nothing.
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-PM_model-copy"></a>}}
+\if{latex}{\out{\hypertarget{method-PM_model-copy}{}}}
+\subsection{Method \code{copy()}}{
+Copy model code to clipboard.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{PM_model$copy()}\if{html}{\out{</div>}}
+}
+
+\subsection{Details}{
+This method copies the R code to create the model to the clipboard.
+This is useful for saving the model code in a script, as model files
+will be deprecated in future versions of Pmetrics.
 }
 
 }

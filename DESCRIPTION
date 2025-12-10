@@ -24,7 +24,6 @@ Depends:
 Imports:
     bslib,
     cli,
-    clipr,
     crayon,
     DT,
     dplyr,
