@@ -1896,7 +1896,7 @@ plot.PM_data <- function(
       } 
     }
     
-    
+  
     # assign colors and symbols to each group, editing for censoring
     IDstring <- ifelse(overlay, "ID: {id}\n", "")
     allsub <- allsub %>%
@@ -1906,7 +1906,11 @@ plot.PM_data <- function(
       symbol = group_symbols[as.integer(group)]
     ) %>%
     mutate(
-      color = ifelse(cens != "none" & cens != "0", opposite_color(color, degrees = 90), color),
+      color = dplyr::case_when(
+        cens == "bloq" | cens == "1" | color == "aloq" | color == "-1" ~ opposite_color(color, degrees = 90),
+        .default = color
+      ),
+      #color = ifelse(cens != "none" & cens != "0", opposite_color(color, degrees = 90), color),
       symbol = dplyr::case_when(
         cens == "bloq" | cens == "1" ~ "triangle-down", 
         cens == "none" | cens == "0" ~ as.character(symbol),
