@@ -1,0 +1,129 @@
+name: Release
+
+on:
+    release:
+        types: [published]
+    workflow_dispatch:
+        inputs:
+            tag:
+                description: "Release tag (e.g., v3.0.6)"
+                required: false
+                type: string
+
+jobs:
+    validate:
+        name: Validate Release
+        runs-on: ubuntu-latest
+        outputs:
+            version: ${{ steps.version.outputs.version }}
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Extract version from DESCRIPTION
+              id: version
+              run: |
+                  VERSION=$(grep "^Version:" DESCRIPTION | sed 's/Version: //')
+                  echo "version=$VERSION" >> $GITHUB_OUTPUT
+                  echo "Package version: $VERSION"
+
+            - name: Validate tag matches version
+              if: github.event_name == 'release'
+              run: |
+                  TAG="${{ github.ref_name }}"
+                  VERSION="${{ steps.version.outputs.version }}"
+                  if [[ "$TAG" != "v$VERSION" && "$TAG" != "$VERSION" ]]; then
+                    echo "::error::Tag ($TAG) does not match package version (v$VERSION)"
+                    exit 1
+                  fi
+
+    build-binaries:
+        name: Build (${{ matrix.os }})
+        needs: validate
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - os: ubuntu-latest
+                      r: release
+                    - os: macos-latest
+                      r: release
+                    - os: windows-latest
+                      r: release
+        env:
+            PAK_FORCE_SOURCE_INSTALL: true
+            PAK_IGNORE_PLATFORM: true
+            GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Rust
+              uses: dtolnay/rust-toolchain@stable
+
+            - name: Cache Rust dependencies
+              uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: "src/rust -> target"
+                  shared-key: "rust-${{ matrix.os }}"
+
+            - name: Set up R
+              uses: r-lib/actions/setup-r@v2
+              with:
+                  r-version: ${{ matrix.r }}
+                  use-public-rspm: true
+
+            - name: Install system dependencies (Linux)
+              if: runner.os == 'Linux'
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y libcurl4-openssl-dev libharfbuzz-dev libfribidi-dev
+
+            - name: Install dependencies
+              uses: r-lib/actions/setup-r-dependencies@v2
+              with:
+                  extra-packages: any::rcmdcheck
+                  needs: check
+
+            - name: Build source package (Linux only)
+              if: runner.os == 'Linux'
+              run: |
+                  R CMD build .
+                  mkdir -p dist
+                  mv Pmetrics_*.tar.gz dist/
+
+            - name: Build binary package
+              shell: Rscript {0}
+              run: |
+                  dir.create("dist", showWarnings = FALSE)
+                  pkg <- pkgbuild::build(binary = TRUE, dest_path = "dist")
+                  message("Built: ", pkg)
+
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: pmetrics-${{ matrix.os }}
+                  path: dist/*
+                  retention-days: 7
+
+    upload-release-assets:
+        name: Upload Release Assets
+        needs: build-binaries
+        if: github.event_name == 'release'
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - name: Download all artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  path: artifacts
+                  merge-multiple: true
+
+            - name: List artifacts
+              run: ls -la artifacts/
+
+            - name: Upload to release
+              uses: softprops/action-gh-release@v2
+              with:
+                  files: artifacts/*

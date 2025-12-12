@@ -5,29 +5,60 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   R-CMD-check:
     runs-on: ${{ matrix.os }}
+    name: R-CMD-check (${{ matrix.os }}, R ${{ matrix.r }})
     env:
       PAK_FORCE_SOURCE_INSTALL: true
       PAK_IGNORE_PLATFORM: true
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            r: release
+          - os: macos-latest
+            r: release
+          - os: windows-latest
+            r: release
+          - os: ubuntu-latest
+            r: devel
+          - os: ubuntu-latest
+            r: oldrel-1
+
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
-        
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "src/rust -> target"
+          shared-key: "rust-${{ matrix.os }}"
+
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
         with:
+          r-version: ${{ matrix.r }}
           use-public-rspm: true
-          
+
+      - name: Install system dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcurl4-openssl-dev libharfbuzz-dev libfribidi-dev
+
       - name: Install dependencies
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
@@ -35,7 +66,7 @@ jobs:
           needs: check
         continue-on-error: true
         id: install-deps
-        
+
       - name: Retry Install dependencies
         if: steps.install-deps.outcome == 'failure'
         uses: r-lib/actions/setup-r-dependencies@v2
@@ -53,4 +84,5 @@ jobs:
         uses: r-lib/actions/check-r-package@v2
         with:
           error-on: '"error"'
-
+          upload-snapshots: true
+          args: 'c("--no-manual", "--as-cran")'
