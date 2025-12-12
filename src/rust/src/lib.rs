@@ -117,7 +117,6 @@ fn simulate_all(
     rows.into_dataframe().unwrap()
 }
 
-
 /// Fits the model at the given path to the data at the given path using the provided parameters.
 /// @param model_path Path to the compiled model file.
 /// @param data Path to the data file.
