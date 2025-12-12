@@ -502,7 +502,7 @@ PMreadMatrix <- function(
     skip <- ifelse(grepl("POPDATA .*", headers[1]), 1, 0) # 0 if current, 1 if legacy
     
     args1 <- list(
-      file = file, delim = sep, col_names = TRUE, na = c(".", NA),
+      file = file, delim = sep, col_names = TRUE, na = c(".", "NA"),
       locale = readr::locale(decimal_mark = dec),
       skip = skip, show_col_types = FALSE, progress = FALSE, num_threads = 1
     )
@@ -1048,7 +1048,7 @@ errcheck <- function(data2, quiet, source) {
     
     allMiss <- names(data2)[which(apply(data2, 2, function(x) all(is.na(x))))]
     nonNumeric <- names(data2)[which(sapply(data2, function(x) !is.numeric(x)))]
-    if (length(allMiss) > 0) {
+    if (length(nonNumeric) > 0) {
       nonNumeric <- nonNumeric[!nonNumeric %in% allMiss] %>% purrr::discard(~.x %in% (c("id", "cens")))
     }
     if (length(nonNumeric) > 0 ) { # exclude id, cens columns
