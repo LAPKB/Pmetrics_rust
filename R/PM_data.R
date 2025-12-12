@@ -502,7 +502,7 @@ PMreadMatrix <- function(
     skip <- ifelse(grepl("POPDATA .*", headers[1]), 1, 0) # 0 if current, 1 if legacy
     
     args1 <- list(
-      file = file, delim = sep, col_names = TRUE, na = ".",
+      file = file, delim = sep, col_names = TRUE, na = c(".", NA),
       locale = readr::locale(decimal_mark = dec),
       skip = skip, show_col_types = FALSE, progress = FALSE, num_threads = 1
     )
@@ -1922,7 +1922,7 @@ plot.PM_data <- function(
       ungroup()
       
       # if ID is numeric, arrange by numeric ID
-      if(!any(is.na(suppressWarnings(as.numeric(allsub$id))))) {
+      if(overlay && !any(is.na(suppressWarnings(as.numeric(allsub$id))))) {
         allsub <- allsub %>%
         mutate(id = as.numeric(id)) %>% arrange(id, time)
       }
@@ -2042,6 +2042,7 @@ plot.PM_data <- function(
       if (!checkRequiredPackages("trelliscopejs")) {
         cli::cli_abort(c("x" = "Package {.pkg trelliscopejs} required to plot when {.code overlay = FALSE}."))
       }
+   
       sub_split <- allsub %>%
       nest(data = -id) %>%
       mutate(panel = trelliscopejs::map_plot(data, \(x) dataPlot(x, overlay = FALSE, includePred = includePred)))
