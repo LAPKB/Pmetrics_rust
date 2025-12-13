@@ -492,7 +492,7 @@ if(plot){
     p3 = p3, # likelihood comparison
     ft1 = ft1, # gamlam comparison: NULL if equal within PMoptions digits
     ft2 = ft2, # model parameter comparison
-    metric_types = sumobjPop[[1]]$pe %>% get_metric_info() %>% pluck("metric_types")
+    metric_types = sumobjPop[[1]]$pe %>% get_metric_info() %>% purrr::pluck("metric_types")
   )
   
   
