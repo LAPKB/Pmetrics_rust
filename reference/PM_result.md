@@ -448,6 +448,14 @@ from the prior run as the prior for the new run.
 
     PM_result$continue(...)
 
+#### Arguments
+
+- `...`:
+
+  Additional arguments passed to the underlying `fit` method of the
+  model. See the documentation for `fit` for details on supported
+  parameters.
+
 #### Details
 
 This method is useful if a prior run did not converge before the maximum
