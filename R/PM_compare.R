@@ -118,8 +118,8 @@ PM_compare <- function(..., icen = "median", outeq = 1, plot = FALSE) {
       }
     })
     tibble(
-      bias = map_chr(res, 1),
-      imp = map_chr(res, 2)
+      bias = purrr::map_chr(res, 1),
+      imp = purrr::map_chr(res, 2)
     )
     
     
@@ -397,10 +397,10 @@ PM_compare <- function(..., icen = "median", outeq = 1, plot = FALSE) {
   sort()
   
   
-  tbl_par <- map(par, \(x){
+  tbl_par <- purrr::map(par, \(x){
     all_par %in% x
     
-  })%>% map(~ set_names(., all_par)) %>%
+  })%>% purrr::map(~ rlang::set_names(., all_par)) %>%
   bind_rows() %>%
   mutate(Run = objNames[1:n()]) %>%
   select(Run, dplyr::everything())
@@ -461,7 +461,7 @@ if (getPMoptions("ic_method") == "aic"){
   results$aic <- NULL
 }
 
-op_tbl <- op %>% map(\(i) {
+op_tbl <- op %>% purrr::map(\(i) {
   i %>% filter(icen == "median") %>% group_by(pred.type) %>% 
   group_map(~ {
     fit <- lm(obs ~ pred, data = .x)
@@ -470,16 +470,16 @@ op_tbl <- op %>% map(\(i) {
       sl     = coef(fit)[2],
       r2        = summary(fit)$r.squared
     ) 
-  }) %>% list_rbind()
-}) %>% set_names(objNames[1:nobj]) %>% 
-map(~ .x %>% mutate(pred.type = c("pop", "post"))) %>%
-list_rbind(names_to = "run") %>%
+  }) %>% purrr::list_rbind()
+}) %>% rlang::set_names(objNames[1:nobj]) %>% 
+purrr::map(~ .x %>% mutate(pred.type = c("pop", "post"))) %>%
+purrr::list_rbind(names_to = "run") %>%
 pivot_wider(id_cols = c(run), names_from = c(pred.type), names_glue = "{pred.type}{stringr::str_to_title({.value})}", values_from = c(int, sl, r2))
 
 results <- bind_cols(results, op_tbl %>% select(-run))
 results$pval <- t
 
-results$best <- results %>% select(c(-run, -nvar, -converged, -pval)) %>% map(~ which(.x == min(.x))) %>% unlist()  %>% table()
+results$best <- results %>% select(c(-run, -nvar, -converged, -pval)) %>% purrr::map(~ which(.x == min(.x))) %>% unlist()  %>% table()
 attr(results, "highlight") <- TRUE
 
 class(results) <- c("PM_compare", "data.frame")
