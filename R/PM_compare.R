@@ -316,7 +316,7 @@ PM_compare <- function(..., icen = "median", outeq = 1, plot = FALSE) {
   
   if(length(not_same$outeq)>0){
     ft1 <- gamlam %>% select(Run, dplyr::everything()) %>%
-    purrr::set_names(c("Run", "Cycle", "Value", "Outeq", "Type")) %>%
+    rlang::set_names(c("Run", "Cycle", "Value", "Outeq", "Type")) %>%
     mutate(Value = round2(Value)) %>%
     flextable::flextable() %>%
     flextable::theme_zebra() %>%
