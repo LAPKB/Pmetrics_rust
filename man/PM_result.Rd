@@ -375,6 +375,13 @@ from the prior run as the prior for the new run.
 \if{html}{\out{<div class="r">}}\preformatted{PM_result$continue(...)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{...}}{Not used.}
+}
+\if{html}{\out{</div>}}
+}
 \subsection{Details}{
 This method is useful if a prior run did not converge before the maximum
 number of cycles. It uses the final population points from the prior run

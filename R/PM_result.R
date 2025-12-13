@@ -298,6 +298,7 @@ PM_result <- R6::R6Class(
     #' This method is useful if a prior run did not converge before the maximum
     #' number of cycles. It uses the final population points from the prior run
     #' as the prior for a new run. The data and model are the same as in the prior run.
+    #' @param ... Not used.
     continue = function(...) {
       self$model$fit(data = self$data, prior = self$final$popPoints, ...)
     }
