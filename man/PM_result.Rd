@@ -378,7 +378,7 @@ from the prior run as the prior for the new run.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{...}}{Not used.}
+\item{\code{...}}{Additional arguments passed to the underlying \code{fit} method of the model. See the documentation for \code{fit} for details on supported parameters.}
 }
 \if{html}{\out{</div>}}
 }
