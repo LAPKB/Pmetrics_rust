@@ -23,12 +23,12 @@
 #' theme ggtitle element_blank element_text geom_segment aes_string aes_string theme_bw theme_grey
 #' coord_fixed facet_wrap labs geom_smooth xlim ylim theme_void
 #' scale_color_identity scale_fill_identity
-#' @importFrom purrr map map2 reduce map_chr keep pluck map_lgl map_df list_rbind
+#' @importFrom purrr map map2 reduce map_chr keep pluck map_lgl map_df list_rbind map_vec imap list_flatten
 #' @importFrom magrittr %>%
 # #' @importFrom tibble as_tibble tibble
 #' @importFrom tidyr pivot_longer pivot_wider nest unnest extract separate fill
 #' crossing separate_wider_delim
-#' @importFrom stringr str_replace regex
+#' @importFrom stringr str_replace regex str_glue str_split
 # #' @importFrom mclust Mclust
 #' @importFrom grDevices col2rgb dev.off devAskNewPage gray.colors jpeg
 #' pdf png postscript rgb setEPS
