@@ -117,8 +117,9 @@ fn simulate_all(
     rows.into_dataframe().unwrap()
 }
 
-
 /// Fits the model at the given path to the data at the given path using the provided parameters.
+/// #' NOTE: This is an internal function and should not be called directly.
+/// #' See [PM_model()] `$fit()` method for arguments.
 /// @param model_path Path to the compiled model file.
 /// @param data Path to the data file.
 /// @param params List of fitting parameters.

@@ -2,7 +2,9 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{fit}
 \alias{fit}
-\title{Fits the model at the given path to the data at the given path using the provided parameters.}
+\title{Fits the model at the given path to the data at the given path using the provided parameters.
+NOTE: This is an internal function and should not be called directly.
+See \link{PM_model} \verb{$fit()} method for arguments.}
 \usage{
 fit(model_path, data, params, output_path, kind)
 }
@@ -22,4 +24,6 @@ Result of the fitting process.
 }
 \description{
 Fits the model at the given path to the data at the given path using the provided parameters.
+NOTE: This is an internal function and should not be called directly.
+See \link{PM_model} \verb{$fit()} method for arguments.
 }
