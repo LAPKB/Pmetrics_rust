@@ -459,9 +459,9 @@ setPMoptions <- function(launch.app = TRUE) {
           bias_method = glue::glue(c("", "percent_")[1 + as.numeric(input$use_percent)], input$bias_method), 
           imp_method = glue::glue(c("", "percent_")[1 + as.numeric(input$use_percent)], input$imp_method),
           ic_method = input$ic_method,
-          report_template = input$report_template, 
-          backend = input$backend, 
-          model_template_path = input$model_template_path
+          report_template = input$report_template
+          # backend = input$backend, 
+          # model_template_path = input$model_template_path
         )
         
         tryCatch({
@@ -481,14 +481,14 @@ setPMoptions <- function(launch.app = TRUE) {
         })
       })
       
-      # Reset model template path to default
-      shiny::observeEvent(input$reset_model_template, {
-        shiny::updateTextAreaInput(
-          session,
-          inputId = "model_template_path",
-          value   = system.file(package = "Pmetrics")
-        )
-      })
+      # # Reset model template path to default
+      # shiny::observeEvent(input$reset_model_template, {
+      #   shiny::updateTextAreaInput(
+      #     session,
+      #     inputId = "model_template_path",
+      #     value   = system.file(package = "Pmetrics")
+      #   )
+      # })
       
       # Exit the app with confirmation if unsaved changes
       shiny::observeEvent(input$exit, {
