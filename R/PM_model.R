@@ -764,651 +764,645 @@ PM_model <- R6::R6Class(
       self$arg_list$pri %>%
         purrr::imap(\(x, y) cli::cli_text("{.strong {y}}: [{.strong {x$min}}, {.strong {x$max}}], {.emph ~N({round(x$mean,2)}}, {.emph {round(x$sd,2)})}")) %>%
         invisible() # to suppress NULL
-
-
-      if (!is.null(self$model_list$covariates)) {
-        cli::cli_h3(text = "Covariates")
-
-        cov_list <- paste0(
-          self$model_list$covariates,
-          ifelse(self$arg_list$cov == 1, "", " (no interpolation)")
+        
+        
+        if (!is.null(self$model_list$covariates)) {
+          cli::cli_h3(text = "Covariates")
+          
+          cov_list <- paste0(
+            self$model_list$covariates,
+            ifelse(self$arg_list$cov == 1, "", " (no interpolation)")
+          )
+          
+          cli::cli_text("{.eqs {cov_list}}")
+        }
+        
+        if (!is.null(self$arg_list$sec)) {
+          cli::cli_h3(text = "Secondary (Global) Equations")
+          eqs <- func_to_char(self$arg_list$sec) # function in PMutitlities
+          for (i in eqs) {
+            cli::cli_text("{.eqs {i}}")
+          }
+        }
+        
+        if (!is.null(self$arg_list$tem)) {
+          cli::cli_h3(text = "Analytical Model")
+          cli::cli_text("{.eqs {self$arg_list$tem$name}})")
+        }
+        
+        if (!is.null(self$arg_list$eqn)) {
+          cli::cli_h3(text = "Primary Equations")
+          eqs <- func_to_char(self$arg_list$eqn) # function in PMutitlities
+          for (i in eqs) {
+            cli::cli_text("{.eqs {i}}")
+          }
+        }
+        
+        if (!is.null(self$arg_list$lag)) {
+          cli::cli_h3(text = "Lag Time")
+          eqs <- func_to_char(self$arg_list$lag) # function in PMutitlities
+          for (i in eqs) {
+            cli::cli_text("{.eqs {i}}")
+          }
+        }
+        
+        if (!is.null(self$arg_list$fa)) {
+          cli::cli_h3(text = "Bioavailability (Fraction Absorbed)")
+          eqs <- func_to_char(self$arg_list$fa) # function in PMutitlities
+          for (i in eqs) {
+            cli::cli_text("{.eqs {i}}")
+          }
+        }
+        
+        if (!is.null(self$arg_list$ini)) {
+          cli::cli_h3(text = "Initial Conditions")
+          eqs <- func_to_char(self$arg_list$ini) # function in PMutitlities
+          for (i in eqs) {
+            cli::cli_text("{.eqs {i}}")
+          }
+        }
+        
+        cli::cli_h3(text = "Outputs")
+        outs <- func_to_char(self$arg_list$out)
+        for (i in outs) {
+          cli::cli_text("{.eqs {i}}")
+        }
+        
+        cli::cli_h3(text = "Error Model")
+        for (i in self$model_list$err) {
+          if (i$fixed) {
+            cli::cli_text("{.strong {tools::toTitleCase(i$type)}}, with fixed value of {.val {i$initial}} and coefficients {.val {i$coeff}}.")
+          } else {
+            cli::cli_text("{.strong {tools::toTitleCase(i$type)}}, with initial value of {.val {i$initial}} and coefficients {.val {i$coeff}}.")
+          }
+        }
+        cli::cli_end()
+        
+        invisible(self)
+      },
+      #' @description
+      #' Plot the model.
+      #' @details
+      #' This method plots the model using the
+      #' [plot.PM_model()] function.
+      #' @param ... Additional arguments passed to the plot function.
+      plot = function(...) {
+        tryCatch(
+          plot.PM_model(self, ...),
+          error = function(e) {
+            cat(crayon::red("Error:"), e$message, "\n")
+          }
         )
-
-        cli::cli_text("{.eqs {cov_list}}")
-      }
-
-      if (!is.null(self$arg_list$sec)) {
-        cli::cli_h3(text = "Secondary (Global) Equations")
-        eqs <- func_to_char(self$arg_list$sec) # function in PMutitlities
-        for (i in eqs) {
-          cli::cli_text("{.eqs {i}}")
-        }
-      }
-
-      if (!is.null(self$arg_list$tem)) {
-        cli::cli_h3(text = "Analytical Model")
-        cli::cli_text("{.eqs {self$arg_list$tem$name}})")
-      }
-
-      if (!is.null(self$arg_list$eqn)) {
-        cli::cli_h3(text = "Primary Equations")
-        eqs <- func_to_char(self$arg_list$eqn) # function in PMutitlities
-        for (i in eqs) {
-          cli::cli_text("{.eqs {i}}")
-        }
-      }
-
-      if (!is.null(self$arg_list$lag)) {
-        cli::cli_h3(text = "Lag Time")
-        eqs <- func_to_char(self$arg_list$lag) # function in PMutitlities
-        for (i in eqs) {
-          cli::cli_text("{.eqs {i}}")
-        }
-      }
-
-      if (!is.null(self$arg_list$fa)) {
-        cli::cli_h3(text = "Bioavailability (Fraction Absorbed)")
-        eqs <- func_to_char(self$arg_list$fa) # function in PMutitlities
-        for (i in eqs) {
-          cli::cli_text("{.eqs {i}}")
-        }
-      }
-
-      if (!is.null(self$arg_list$ini)) {
-        cli::cli_h3(text = "Initial Conditions")
-        eqs <- func_to_char(self$arg_list$ini) # function in PMutitlities
-        for (i in eqs) {
-          cli::cli_text("{.eqs {i}}")
-        }
-      }
-
-      cli::cli_h3(text = "Outputs")
-      outs <- func_to_char(self$arg_list$out)
-      for (i in outs) {
-        cli::cli_text("{.eqs {i}}")
-      }
-
-      cli::cli_h3(text = "Error Model")
-      for (i in self$model_list$err) {
-        if (i$fixed) {
-          cli::cli_text("{.strong {tools::toTitleCase(i$type)}}, with fixed value of {.val {i$initial}} and coefficients {.val {i$coeff}}.")
-        } else {
-          cli::cli_text("{.strong {tools::toTitleCase(i$type)}}, with initial value of {.val {i$initial}} and coefficients {.val {i$coeff}}.")
-        }
-      }
-      cli::cli_end()
-
-      invisible(self)
-    },
-    #' @description
-    #' Plot the model.
-    #' @details
-    #' This method plots the model using the
-    #' [plot.PM_model()] function.
-    #' @param ... Additional arguments passed to the plot function.
-    plot = function(...) {
-      tryCatch(
-        plot.PM_model(self, ...),
-        error = function(e) {
-          cat(crayon::red("Error:"), e$message, "\n")
-        }
-      )
-    },
-    #' @description
-    #' This is the main method to run a population analysis.
-    #' @details
-    #' As of Pmetrics 3.0.0, models contain compiled code to fit
-    #' the model equations to the data, optimizing the parameter
-    #' value probability distributions in the population to
-    #' maximize their likelihood, or more precisely, minimize
-    #' the objective function, which is -2*log-likelihood.
-    #'
-    #' The `$fit()` method is the means of running that compiled
-    #' code to conduct to fitting procedure. At a minimum, it requires
-    #' a [PM_data] object, which can be created with
-    #' `PM_data$new()`. There are a number of additional arguments
-    #' to control the fitting procedure, such as the number of cycles
-    #' to run, the initial number of support points,
-    #' and the algorithm to use, among others.
-    #'
-    #' The `$fit()` method is the descendant of the legacy
-    #' [NPrun] function, which is maintained as a wrapper to `$fit()`
-    #' for backwards compatibility.
-    #'
-    #' @param data Either the name of a  [PM_data]
-    #' object in memory or the quoted filename (with or without a path) of a Pmetrics
-    #' data file. If the path is not specified, the file is assumed to be in the current working directory,
-    #' unless the `path` argument below is also specified as a global option for the fit.
-    #' The file will be used to create a [PM_data]
-    #' object on the fly. However, if created on the fly, this object
-    #' will not be available to other
-    #' methods or other instances of `$fit()`.
-    #' @param path Optional full path or relative path from current working directory
-    #' to the folder where `data` and `model` are located if specified as filenames without
-    #' their own paths,
-    #' and where the output will be saved. Default is the current working directory.
-    #' @param run Specify the run number of the output folder.  Default if missing is the next available number.
-    #' @param include Vector of subject id values in the data file to include in the analysis.
-    #' The default (missing) is all.
-    #' @param exclude A vector of subject IDs to exclude in the analysis, e.g. `c(4,6:14,16:20)`
-    #    #' @param ode Ordinary Differential Equation solver log tolerance or stiffness.
-    #    Default is -4, i.e. 0.0001.  Higher values will result in faster
-    #    #' runs, but parameter estimates may not be as accurate.
-    #    #' @param tol Tolerance for convergence of NPAG.  Smaller numbers make it harder to converge.
-    #    #' Default value is 0.01.
-    #    #' @param salt Vector of salt fractions for each drug in the data file, default is 1 for each drug.  This is not the same as bioavailability.
-    #' @param cycles Number of cycles to run. Default is 100.
-    #' @param prior The distribution for the initial support points, which can be
-    #' one of several options.
-    #' * The default is "sobol", which is a semi-random distribution. This is the distribution
-    #' typically used when fitting a new model to the data. An example of this is
-    #' on our [website](https://www.lapk.org/images/sobol_3d_plot.html).
-    #'
-    #' The following all specify non-random, informative prior distributions. They
-    #' are useful for either continuing a previous
-    #' run which did not converge or for fitting a model to new data, whether to simply
-    #' calculate Bayesian posteriors with `cycles = 0` or to revise the model to a new
-    #' covergence with the new data.
-    #' * The name of a suitable [PM_result] object from a prior run loaded with [PM_load].
-    #' This starts from the non-uniform, informative distribution obtained at the end of a prior NPAG run.
-    #' Example: `run1 <- PM_load(1); fit1$run(prior = run1)`.
-    #'
-    #' * A character string with the filename of a csv file containing a prior distribution with
-    #' format as for 'theta.csv' in the output folder of a prior run: column headers are parameter
-    #' names, and rows are the support point values. A final column with probabilities
-    #' for each support point is not necessary, but if present will be ignored, as these
-    #' probabilities are calculated by the engine. Note that the parameter names must match the
-    #' names of the primary variables in the model. Example: `fit1$run(prior = "mytheta.csv")`.
-    #' * The number of a previous run with `theta.csv` in the output folder which will be read
-    #' as for the filename option above. Example: `fit1$run(prior = 2)`.
-    #' * A data frame obtained from reading an approriate file, such that the data frame
-    #' is in the required format described in the filename option above. Example:
-    #' `mytheta <- read_csv("mytheta.csv"); fit1$run(prior = mytheta)`.
-    #'
-    #' @param points The number of initial support points if one of
-    #' the semi-random, uniform distributions are selected in the `prior` argument
-    #' above. Default is 100. The initial points are
-    #' spread through the hyperspace defined by the random parameter ranges
-    #' and begin the search for the optimal
-    #' parameter value distribution (support points) in the population.
-    #' If there are fewer than 2 points per unit range for any parameter,
-    #' Pmetrics will suggest the minimum number of points that should be tried.
-    #' The greater the initial number of points, the less chance of
-    #' missing the globally maximally likely parameter value distribution,
-    #' but the slower the run.
-    #'
-    #' @param idelta How often to generate posterior predictions in units of time.
-    #' Default is 0.1, which means a prediction is generated every 0.1 hours (6 minutes)
-    #' if the unit of time is hours. Predictions are made at this interval until the time
-    #' of the last event (dose or observation) or until `tad` if that value is greater
-    #' than the time of the last dose or observation in the data.
-    #'
-    #' @param tad Length of time after the last dose event to add additional predictions
-    #' at frequency `idelta`.  Default is 0, which means no additional predictions
-    #' beyond the last dose, assuming the dose is the last event. . If the
-    #' last observation in the data is after `tad`, then a prediction will be generated at
-    #' time = `tad` after the last dose
-    #'
-    #' @param seed Seed used if `prior = "sobol"`. Ignored otherwise.
-    #' @param intern Run NPAG in the R console without a batch script.  Default is TRUE.
-    #    #' @param quiet Boolean operator controlling whether a model summary report is given.  Default is `TRUE`.
-    #' @param overwrite Boolean operator to overwrite existing run result folders.  Default is `FALSE`.
-    #    #' @param nocheck Suppress the automatic checking of the data file with [PM_data].  Default is `FALSE`.
-    #    #' @param parallel Run NPAG in parallel.  Default is `NA`, which will be set to `TRUE` for models that use
-    #    #' differential equations, and `FALSE` for analytical/explicit models.  The majority of the benefit for parallelization comes
-    #    #' in the first cycle, with a speed-up of approximately 80\% of the number of available cores on your machine, e.g. an 8-core machine
-    #    #' will speed up the first cycle by 0.8 * 8 = 6.4-fold.  Subsequent cycles approach about 50\%, e.g. 4-fold increase on an 8-core
-    #    #' machine.  Overall speed up for a run will therefore depend on the number of cycles run and the number of cores.
-    #' @param algorithm The algorithm to use for the run.  Default is "NPAG" for the **N**on-**P**arametric **A**daptive **G**rid. Alternatives: "NPOD".
-    #' @param report If missing, the default Pmetrics report template as specified in [getPMoptions]
-    #' is used. Otherwise can be "plotly", "ggplot", or "none".
-    #' @return A successful run will result in creation of a new folder in the working
-    #' directory with the results inside the folder.
-    #'
-    #' @author Michael Neely
-    #' @export
-    fit = function(data = NULL,
-                   path = ".",
-                   run = NULL,
-                   include = NULL,
-                   exclude = NULL,
-                   cycles = 100,
-                   prior = "sobol",
-                   points = 100,
-                   idelta = 0.1,
-                   tad = 0,
-                   seed = 23,
-                   overwrite = FALSE,
-                   algorithm = "NPAG", # POSTPROB for posteriors, select when cycles = 0, allow for "NPOD"
-                   report = getPMoptions("report_template")) {
-      msg <- NULL # status message at end of run
-      run_error <- 0
-
-      path <- stringr::str_replace(path, "/$", "") # remove trailing /
-
-      if (is.null(data)) {
-        msg <- c(msg, " {.arg data} must be specified.")
-        run_error <- run_error + 1
-      }
-
-      if (is.null(self$model_list)) {
-        msg <- c(msg, "Model is malformed.")
-        run_error <- run_error + 1
-      }
-
-      if (is.character(data)) {
-        # create PM_data object from file
-        data <- PM_data$new(normalizePath(file.path(path, data), mustWork = FALSE))
-      }
-
-      if (!inherits(data, "PM_data")) {
-        data <- tryCatch(
+      },
+      #' @description
+      #' This is the main method to run a population analysis.
+      #' @details
+      #' As of Pmetrics 3.0.0, models contain compiled code to fit
+      #' the model equations to the data, optimizing the parameter
+      #' value probability distributions in the population to
+      #' maximize their likelihood, or more precisely, minimize
+      #' the objective function, which is -2*log-likelihood.
+      #'
+      #' The `$fit()` method is the means of running that compiled
+      #' code to conduct to fitting procedure. At a minimum, it requires
+      #' a [PM_data] object, which can be created with
+      #' `PM_data$new()`. There are a number of additional arguments
+      #' to control the fitting procedure, such as the number of cycles
+      #' to run, the initial number of support points,
+      #' and the algorithm to use, among others.
+      #'
+      #' The `$fit()` method is the descendant of the legacy
+      #' [NPrun] function, which is maintained as a wrapper to `$fit()`
+      #' for backwards compatibility.
+      #'
+      #' @param data Either the name of a  [PM_data]
+      #' object in memory or the quoted filename (with or without a path) of a Pmetrics
+      #' data file. If the path is not specified, the file is assumed to be in the current working directory,
+      #' unless the `path` argument below is also specified as a global option for the fit.
+      #' The file will be used to create a [PM_data]
+      #' object on the fly. However, if created on the fly, this object
+      #' will not be available to other
+      #' methods or other instances of `$fit()`.
+      #' @param path Optional full path or relative path from current working directory
+      #' to the folder where `data` and `model` are located if specified as filenames without
+      #' their own paths,
+      #' and where the output will be saved. Default is the current working directory.
+      #' @param run Specify the run number of the output folder.  Default if missing is the next available number.
+      #' @param include Vector of subject id values in the data file to include in the analysis.
+      #' The default (missing) is all.
+      #' @param exclude A vector of subject IDs to exclude in the analysis, e.g. `c(4,6:14,16:20)`
+      #    #' @param ode Ordinary Differential Equation solver log tolerance or stiffness.
+      #    Default is -4, i.e. 0.0001.  Higher values will result in faster
+      #    #' runs, but parameter estimates may not be as accurate.
+      #    #' @param tol Tolerance for convergence of NPAG.  Smaller numbers make it harder to converge.
+      #    #' Default value is 0.01.
+      #    #' @param salt Vector of salt fractions for each drug in the data file, default is 1 for each drug.  This is not the same as bioavailability.
+      #' @param cycles Number of cycles to run. Default is 100.
+      #' @param prior The distribution for the initial support points, which can be
+      #' one of several options.
+      #' * The default is "sobol", which is a semi-random distribution. This is the distribution
+      #' typically used when fitting a new model to the data. An example of this is
+      #' on our [website](https://www.lapk.org/images/sobol_3d_plot.html).
+      #'
+      #' The following all specify non-random, informative prior distributions. They
+      #' are useful for either continuing a previous
+      #' run which did not converge or for fitting a model to new data, whether to simply
+      #' calculate Bayesian posteriors with `cycles = 0` or to revise the model to a new
+      #' covergence with the new data.
+      #' * The name of a suitable [PM_result] object from a prior run loaded with [PM_load].
+      #' This starts from the non-uniform, informative distribution obtained at the end of a prior NPAG run.
+      #' Example: `run1 <- PM_load(1); fit1$run(prior = run1)`.
+      #'
+      #' * A character string with the filename of a csv file containing a prior distribution with
+      #' format as for 'theta.csv' in the output folder of a prior run: column headers are parameter
+      #' names, and rows are the support point values. A final column with probabilities
+      #' for each support point is not necessary, but if present will be ignored, as these
+      #' probabilities are calculated by the engine. Note that the parameter names must match the
+      #' names of the primary variables in the model. Example: `fit1$run(prior = "mytheta.csv")`.
+      #' * The number of a previous run with `theta.csv` in the output folder which will be read
+      #' as for the filename option above. Example: `fit1$run(prior = 2)`.
+      #' * A data frame obtained from reading an approriate file, such that the data frame
+      #' is in the required format described in the filename option above. Example:
+      #' `mytheta <- read_csv("mytheta.csv"); fit1$run(prior = mytheta)`.
+      #'
+      #' @param points The number of initial support points if one of
+      #' the semi-random, uniform distributions are selected in the `prior` argument
+      #' above. Default is 100. The initial points are
+      #' spread through the hyperspace defined by the random parameter ranges
+      #' and begin the search for the optimal
+      #' parameter value distribution (support points) in the population.
+      #' If there are fewer than 2 points per unit range for any parameter,
+      #' Pmetrics will suggest the minimum number of points that should be tried.
+      #' The greater the initial number of points, the less chance of
+      #' missing the globally maximally likely parameter value distribution,
+      #' but the slower the run.
+      #'
+      #' @param idelta How often to generate posterior predictions in units of time.
+      #' Default is 0.1, which means a prediction is generated every 0.1 hours (6 minutes)
+      #' if the unit of time is hours. Predictions are made at this interval until the time
+      #' of the last event (dose or observation) or until `tad` if that value is greater
+      #' than the time of the last dose or observation in the data.
+      #'
+      #' @param tad Length of time after the last dose event to add additional predictions
+      #' at frequency `idelta`.  Default is 0, which means no additional predictions
+      #' beyond the last dose, assuming the dose is the last event. . If the
+      #' last observation in the data is after `tad`, then a prediction will be generated at
+      #' time = `tad` after the last dose
+      #'
+      #' @param seed Seed used if `prior = "sobol"`. Ignored otherwise.
+      #' @param intern Run NPAG in the R console without a batch script.  Default is TRUE.
+      #    #' @param quiet Boolean operator controlling whether a model summary report is given.  Default is `TRUE`.
+      #' @param overwrite Boolean operator to overwrite existing run result folders.  Default is `FALSE`.
+      #    #' @param nocheck Suppress the automatic checking of the data file with [PM_data].  Default is `FALSE`.
+      #    #' @param parallel Run NPAG in parallel.  Default is `NA`, which will be set to `TRUE` for models that use
+      #    #' differential equations, and `FALSE` for analytical/explicit models.  The majority of the benefit for parallelization comes
+      #    #' in the first cycle, with a speed-up of approximately 80\% of the number of available cores on your machine, e.g. an 8-core machine
+      #    #' will speed up the first cycle by 0.8 * 8 = 6.4-fold.  Subsequent cycles approach about 50\%, e.g. 4-fold increase on an 8-core
+      #    #' machine.  Overall speed up for a run will therefore depend on the number of cycles run and the number of cores.
+      #' @param algorithm The algorithm to use for the run.  Default is "NPAG" for the **N**on-**P**arametric **A**daptive **G**rid. Alternatives: "NPOD".
+      #' @param report If missing, the default Pmetrics report template as specified in [getPMoptions]
+      #' is used. Otherwise can be "plotly", "ggplot", or "none".
+      #' @return A successful run will result in creation of a new folder in the working
+      #' directory with the results inside the folder.
+      #'
+      #' @author Michael Neely
+      #' @export
+      fit = function(data = NULL,
+        path = ".",
+        run = NULL,
+        include = NULL,
+        exclude = NULL,
+        cycles = 100,
+        prior = "sobol",
+        points = 100,
+        idelta = 0.1,
+        tad = 0,
+        seed = 23,
+        overwrite = FALSE,
+        algorithm = "NPAG", # POSTPROB for posteriors, select when cycles = 0, allow for "NPOD"
+        report = getPMoptions("report_template")) {
+          msg <- NULL # status message at end of run
+          run_error <- 0
+          
+          path <- stringr::str_replace(path, "/$", "") # remove trailing /
+          
+          if (is.null(data)) {
+            msg <- c(msg, " {.arg data} must be specified.")
+            run_error <- run_error + 1
+          }
+          
+          if (is.null(self$model_list)) {
+            msg <- c(msg, "Model is malformed.")
+            run_error <- run_error + 1
+          }
+          
+          if (is.character(data)) {
+            # create PM_data object from file
+            data <- PM_data$new(normalizePath(file.path(path, data), mustWork = FALSE))
+          }
+          
+          if (!inherits(data, "PM_data")) {
+            data <- tryCatch(
+              {
+                PM_data$new(data)
+              },
+              error = function(e) {
+                -1
+              }
+            )
+            
+            if (!inherits(data, "PM_data")) {
+              msg <- c(msg, "{.arg data} must be a {.cls PM_data} object or an appropriate data frame.")
+              run_error <- run_error + 1
+            }
+          }
+          
+          #### checks
+          
+          # bolus and infusions
+          if (self$model_list$type == "ODE") { # only need to check these for ODE models
+            bolus <- unique(data$standard_data$input[data$standard_data$dur == 0]) %>% purrr::discard(~ is.na(.x))
+            infusion <- unique(data$standard_data$input[data$standard_data$dur > 0]) %>% purrr::discard(~ is.na(.x))
+            if (length(bolus) > 0) {
+              missing_bolus <- bolus[!stringr::str_detect(self$model_list$eqn, paste0("b\\[", bolus - 1))]
+              if (length(missing_bolus) > 0) {
+                msg <- c(msg, "Bolus input(s) {paste(missing_bolus, collapse = ', ')} {?is/are} missing from the model equations. Use {.code b[{missing_bolus}]} or {.code bolus[{missing_bolus}]}, for example, to represent bolus inputs in the equations.")
+                run_error <- run_error + 1
+              }
+            }
+            if (length(infusion) > 0) {
+              missing_infusion <- infusion[!stringr::str_detect(self$model_list$eqn, paste0("rateiv\\[", infusion - 1))]
+              if (length(missing_infusion) > 0) {
+                msg <- c(msg, "Infusion input(s) {paste(missing_infusion, collapse = ', ')} {?is/are} missing from the model equations. Use {.code r[{missing_infusion}]} or {.code rateiv[{missing_infusion}]} , for example, to represent infusion inputs in the equations.")
+                run_error <- run_error + 1
+              }
+            }
+          }
+          
+          # covariates
+          modelCov <- self$model_list$cov
+          if (length(modelCov) > 0) {
+            dataCov <- tolower(getCov(data)$covnames)
+            missingCov <- modelCov[!modelCov %in% dataCov]
+            if (length(missingCov) > 0) { # if not identical, abort
+              msg <- c(msg, "{.arg {modelCov}} {?is/are} missing from the data.")
+              run_error <- run_error + 1
+            }
+          }
+          
+          # cycles
+          # if programmer is a crazy Norwegian....
+          if (cycles < 0) {
+            msg <- c(msg, "Error: {.arg cycles} must be 0 or greater.")
+            run_error <- run_error + 1
+          }
+          
+          # output equations
+          if (!is.null(data$standard_data$outeq)) {
+            dataOut <- max(data$standard_data$outeq, na.rm = TRUE)
+          } else {
+            dataOut <- 1
+          }
+          modelOut <- self$model_list$n_out
+          
+          
+          #### Algorithm ####
+          algorithm <- toupper(algorithm)
+          if (cycles == 0) {
+            if (length(prior) ==1 && prior == "sobol") {
+              msg <- c(msg, "Cannot use {.code prior = 'sobol'} with {.code cycles = 0}.")
+              run_error <- run_error + 1
+            }
+            algorithm <- "POSTPROB"
+          } else {
+            if (!(algorithm %in% c("NPAG", "NPOD"))) {
+              msg <- c(msg, "Unsupported algorithm. Supported algorithms are 'NPAG' and 'NPOD'.")
+              run_error <- run_error + 1
+            }
+          }
+          if (algorithm == "POSTPROB" && cycles > 0) {
+            msg <- c(msg, "Warning: {.code algorithm = 'POSTPROB'} is used with {.code cycles = 0}. {.code cycles} set to 0.")
+            cycles <- 0
+          }
+          
+          
+          
+          # if (getPMoptions()$backend != "rust") {
+          #   cli::cli_abort(c("x" = "Error: unsupported backend.", "i" = "See help for {.fn setPMoptions}"))
+          # }
+          
+          #### Include or exclude subjects ####
+          if (is.null(include)) {
+            include <- unique(data$standard_data$id)
+          }
+          if (is.null(exclude)) {
+            exclude <- NA
+          }
+          data_filtered <- data$standard_data %>% includeExclude(include, exclude)
+          
+          if (nrow(data_filtered) == 0) {
+            msg <- c(msg, "No subjects remained after filtering.")
+            run_error <- run_error + 1
+          }
+          
+          # set prior
+          if (length(prior)==1 && prior != "sobol") {
+            if (is.numeric(prior)) {
+              # prior specified as a run number
+              if (!file.exists(glue::glue("{path}/{prior}/outputs/theta.csv"))) {
+                msg <- c(msg, "{.arg prior} file does not exist.", "i" = "Check the file path.")
+                run_error <- run_error + 1
+              }
+              file.copy(glue::glue("{path}/{prior}/outputs/theta.csv"), "prior.csv", overwrite = TRUE)
+              prior <- "prior.csv"
+            } else if (length(prior)==1 && is.character(prior)) {
+              # prior specified as a filename
+              if (!file.exists(prior)) {
+                msg <- c(msg, "{.arg prior} file does not exist.")
+                run_error <- run_error + 1
+              }
+              file.copy(prior, "prior.csv", overwrite = TRUE) # ensure in current working directory
+            } else if (is.data.frame(prior)) {
+              # prior specified as a data frame
+              if (!all(c("prob", self$model_list$parameters) %in% names(prior))) {
+                msg <- c(msg, "{.arg prior} data frame must contain columns for parameters and probabilities.")
+                run_error <- run_error + 1
+              }
+              prior <- prior %>% dplyr::select(all_of(self$model_list$parameters), prob)
+              write.csv(prior, "prior.csv", row.names = FALSE)
+            } else {
+              msg <- c(msg, "{.arg prior} must be a numeric run number or character filename.")
+              run_error <- run_error + 1
+            }
+          } else {
+            prior <- "sobol"
+          }
+          
+          #### Abort if errors before creating new folder ####
+          if (run_error > 0) {
+            cli::cli_alert_danger("{.strong PM_model$fit() aborted due to {run_error} error{?s}:}")
+            purrr::walk(msg, \(m) cli::cli_bullets(c("*" = m)))
+            return(invisible(NULL))
+          }
+          #### Continue with fit ####
+          
+          # check if model compiled and if not, do so
+          self$compile()
+          
+          intern <- TRUE # always true until (if) rust can run separately from R
+          
+          
+          # make new output directory
+          
+          if (is.null(run)) {
+            olddir <- list.dirs(path, recursive = FALSE)
+            olddir <- olddir[grep("^\\./[[:digit:]]+", olddir)]
+            olddir <- sub("^\\./", "", olddir)
+            if (length(olddir) > 0) {
+              run <- as.character(max(as.numeric(olddir)) + 1)
+            } else {
+              run <- "1"
+            }
+          } else {
+            if (!is.numeric(run)) {
+              msg <- c(msg, "{.arg run} must be numeric, so was ignored.")
+            }
+          }
+          
+          path_run <- normalizePath(file.path(path, run), mustWork = FALSE)
+          
+          if (file.exists(path_run)) {
+            if (overwrite) {
+              unlink(path_run, recursive = TRUE)
+              msg <- c(msg, "The previous run in folder '{path_run}' was overwritten.")
+            } else {
+              cli::cli_inform(
+                c("i" = "The previous run from '{path_run}' was read.", " " = "Set {.arg overwrite} to {.val TRUE} to overwrite prior run in '{path_run}'.")
+              )
+              return(invisible(PM_load(file = normalizePath(file.path(path_run, "PMout.Rdata"), mustWork = FALSE))))
+            }
+          }
+          
+          fs::dir_create(path_run)
+          
+          #### Save input objects ####
+          fs::dir_create(normalizePath(file.path(path_run, "inputs"), mustWork = FALSE))
+          PM_data$new(data_filtered, quiet = TRUE)$save(normalizePath(file.path(path_run, "inputs", "gendata.csv"), mustWork = FALSE), header = FALSE)
+          saveRDS(list(data = data, model = self), file = normalizePath(file.path(path_run, "inputs", "fit.rds"), mustWork = FALSE))
+          file.copy(self$binary_path, normalizePath(file.path(path_run, "inputs"), mustWork = FALSE))
+          
+          # Get ranges and calculate points
+          ranges <- lapply(self$model_list$pri, function(x) {
+            c(x$min, x$max)
+          })
+          
+          names(ranges) <- tolower(names(ranges))
+          # Set initial grid points (only applies for sobol)
+          marginal_densities <- sapply(ranges, function(x) {
+            points / (x[2] - x[1])
+          })
+          if (any(marginal_densities < 2)) {
+            increase_to <- round(points * (max(2 / marginal_densities)), 0)
+            msg <- c(msg, "Recommend increasing {.arg points} to at least {increase_to} to ensure adequate coverage of parameter space.")
+          }
+          
+          
+          if (intern) {
+            ### CALL RUST
+            out_path <- normalizePath(file.path(path_run, "outputs"), mustWork = FALSE)
+            msg <- c(msg, "Run results were saved in folder '{.path {out_path}}'")
+            rlang::try_fetch(
+              fit(
+                # defined in extendr-wrappers.R
+                model_path = normalizePath(self$binary_path),
+                data = normalizePath(file.path(path_run, "inputs", "gendata.csv")),
+                params = list(
+                  ranges = ranges, # not important but needed for POSTPROB
+                  algorithm = algorithm,
+                  error_models = lapply(self$model_list$err, function(x) x$flatten()),
+                  idelta = idelta,
+                  tad = tad,
+                  max_cycles = cycles, # will be hardcoded in Rust to 0 for POSTPROB
+                  prior = prior, # needs warning if missing and algorithm = POSTPROB
+                  points = points, # only relevant for sobol prior
+                  seed = seed
+                ),
+                output_path = out_path,
+                kind = tolower(self$model_list$type)
+              ),
+              error = function(e) {
+                cli::cli_warn("Unable to create {.cls PM_result} object", parent = e)
+                return(NULL)
+              }
+            )
+            
+            PM_parse(path = out_path)
+            res <- PM_load(path = normalizePath(out_path), file = "PMout.Rdata")
+            if (report != "none") {
+              valid_report <- tryCatch(
+                PM_report(res, path = normalizePath(out_path), template = report, quiet = TRUE),
+                error = function(e) {
+                  -1
+                }
+              )
+              if (valid_report == 1) {
+                msg <- c(msg, "Report generated with {report} template.")
+                # if(tolower(algorithm) == "postprob") {this_alg <- "map"} else {this_alg <- "fit"}
+                msg <- c(msg, "If assigned to a variable, e.g. {.code run{run} <-}, results are available in {.code run{run}}.")
+              } else {
+                msg <- c(msg, "Report could not be generated.")
+              }
+            }
+            
+            
+            if (length(msg) > 1) {
+              cli::cli_h1("Notes:")
+              cli::cli_ul()
+              purrr::walk(msg[-1], ~ cli::cli_li(.x))
+              cli::cli_end()
+            }
+            return(invisible(res))
+          } else {
+            cli::cli_abort(
+              c("x" = "Error: Currently, the rust engine only supports internal runs.", "i" = "This is a temporary limitation.")
+            )
+          }
+        }, # end fit method
+        
+        #' @description
+        #' Calculate posteriors from a fitted model.
+        #' #' @details
+        #' This method calculates posteriors from a compiled model. It is not necessary to have
+        #' run the model first, but it is necessary to have an informative prior distribution.
+        #' This prior will typically be the result of a previous run, but may also be a file
+        #' containing support points, with each column named as a parameter in the model plus a final column
+        #' for probability.  Each row contains values for the parameters and the associated probability for
+        #' those parameter values.  The file can be saved as a csv file.
+        #'
+        #' To calculate the posteriors, `map()` calls the `fit()` method with the `cycles` argument set to 0
+        #' and the `algorithm` argument set to "POSTPROB". If `data` are not provided as an argument to
+        #' `map()`, the model's `data` field is used instead. If `data` is provided, it must be a
+        #' [PM_data] object or the pathname of a file which can be loaded as a [PM_data] object.
+        #' @param ... Arguments passed to the `fit` method. Note that the `cycles` argument is set to 0,
+        #' and the `algorithm` argument is set to "POSTPROB" automatically.
+        map = function(...) {
+          # browser()
+          args <- list(...)
+          
+          if (!is.null(purrr::pluck(args, "cycles")) && purrr::pluck(args, "cycles") != 0) {
+            cli::cli_inform(c("i" = "{.arg cycles} set to 0 for posteriors"))
+          }
+          args$cycles <- 0 # ensure cycles is set to 0
+          
+          
+          if (!is.null(purrr::pluck(args, "algorithm")) && purrr::pluck(args, "algorithm") != "POSTPROB") {
+            cli::cli_inform(c("i" = "{.arg algorithm} set to POSTPROB for posteriors"))
+          }
+          args$algorithm <- "POSTPROB" # ensure algorithm is set to POSTPROB
+          
+          
+          if (is.null(purrr::pluck(args, "data"))) {
+            cli::cli_abort(c("x" = "Data must be specified for posteriors."))
+          }
+          
+          if (is.null(purrr::pluck(args, "prior")) || purrr::pluck(args, "prior") == "sobol") {
+            cli::cli_abort(c(
+              "x" = "Please specify a non-uniform prior for posteriors.",
+              " " = "This can be a prior run number or the name of a file with support points."
+            ))
+          }
+          
+          do.call(self$fit, args)
+        },
+        #' @description
+        #' Simulate data from the model using a set of parameter values.
+        #' @details
+        #' This method simulates output from the model using a set of parameter values
+        #' provided in the `theta` matrix and the template for dosing/observations in
+        #' the `data` object.
+        #' @param data A [PM_data] object containing the dosing and observation information.
+        #' @param theta A matrix of parameter values to use for the simulation.
+        #' The `theta` matrix should have the same number of columns as the number of primary parameters in the model.
+        #' Each row of `theta` represents a different set of parameter values.
+        #'
+        sim = function(data, theta) {
+          if (!inherits(data, "PM_data")) {
+            cli::cli_abort(c("x" = "Data must be a PM_data object."))
+          }
+          if (!is.matrix(theta)) {
+            cli::cli_abort(c("x" = "theta must be a matrix."))
+          }
+          if (!is.numeric(theta)) {
+            cli::cli_abort(c("x" = "theta must be a matrix of numeric values."))
+          }
+          if (ncol(theta) != length(private$get_primary())) {
+            cli::cli_abort(c("x" = "theta must have the same number of columns as the number of parameters."))
+          }
+          
+          
+          temp_csv <- tempfile(fileext = ".csv")
+          data$save(temp_csv, header = FALSE)
+          if (getPMoptions()$backend == "rust") {
+            if (is.null(self$binary_path)) {
+              self$compile()
+              if (is.null(self$binary_path)) {
+                cli::cli_abort(c("x" = "Model must be compiled before simulating."))
+              }
+            }
+            sim <- simulate_all(temp_csv, self$binary_path, theta, kind = tolower(self$model_list$type))
+          } else {
+            cli::cli_abort(c("x" = "This function can only be used with the rust backend."))
+          }
+          return(sim)
+        },
+        #' @description
+        #' Compile the model to a binary file.
+        #' @details
+        #' This method write the model to a Rust file in a temporary path,
+        #' updates the `binary_path` field for the model, and compiles that
+        #' file to a binary file that can be used for fitting or simulation.
+        #' If the model is already compiled, the method does nothing.
+        #'
+        compile = function() {
+          if (!is.null(self$binary_path) && file.exists(self$binary_path)) {
+            # model is compiled
+            return(invisible(NULL))
+          }
+          
+          model_path <- file.path(tempdir(), "model.rs")
+          private$write_model_to_rust(model_path)
+          output_path <- tempfile(pattern = "model_", fileext = ".pmx")
+          cli::cli_inform(c("i" = "Compiling model..."))
+          # path inside Pmetrics package
+          template_path <- if (Sys.getenv("env") == "Development") { temporary_path() } else { system.file(package = "Pmetrics")}
+          if (file.access(template_path, 0) == -1 | file.access(template_path, 2) == -1){
+            cli::cli_abort(c("x" = "Template path {.path {template_path}} does not exist or is not writable.",
+            "i" = "Please set the template path with {.fn setPMoptions} (choose {.emph Compile Options}), to an existing, writable folder."
+          ))
+        } 
+        if (Sys.getenv("env") == "Development") {cat("Using template path:", template_path, "\n")}
+        tryCatch(
           {
-            PM_data$new(data)
+            compile_model(model_path, output_path, private$get_primary(), template_path, kind = tolower(self$model_list$type))
+            self$binary_path <- output_path
           },
           error = function(e) {
-            -1
+            cli::cli_abort(
+              c("x" = "Model compilation failed: {e$message}", "i" = "Please check the model file and try again.")
+            )
           }
         )
-
-        if (!inherits(data, "PM_data")) {
-          msg <- c(msg, "{.arg data} must be a {.cls PM_data} object or an appropriate data frame.")
-          run_error <- run_error + 1
-        }
-      }
-
-      #### checks
-
-      # bolus and infusions
-      if (self$model_list$type == "ODE") { # only need to check these for ODE models
-        bolus <- unique(data$standard_data$input[data$standard_data$dur == 0]) %>% purrr::discard(~ is.na(.x))
-        infusion <- unique(data$standard_data$input[data$standard_data$dur > 0]) %>% purrr::discard(~ is.na(.x))
-        if (length(bolus) > 0) {
-          missing_bolus <- bolus[!stringr::str_detect(self$model_list$eqn, paste0("b\\[", bolus - 1))]
-          if (length(missing_bolus) > 0) {
-            msg <- c(msg, "Bolus input(s) {paste(missing_bolus, collapse = ', ')} {?is/are} missing from the model equations. Use {.code b[{missing_bolus}]} or {.code bolus[{missing_bolus}]}, for example, to represent bolus inputs in the equations.")
-            run_error <- run_error + 1
-          }
-        }
-        if (length(infusion) > 0) {
-          missing_infusion <- infusion[!stringr::str_detect(self$model_list$eqn, paste0("rateiv\\[", infusion - 1))]
-          if (length(missing_infusion) > 0) {
-            msg <- c(msg, "Infusion input(s) {paste(missing_infusion, collapse = ', ')} {?is/are} missing from the model equations. Use {.code r[{missing_infusion}]} or {.code rateiv[{missing_infusion}]} , for example, to represent infusion inputs in the equations.")
-            run_error <- run_error + 1
-          }
-        }
-      }
-
-      # covariates
-      modelCov <- self$model_list$cov
-      if (length(modelCov) > 0) {
-        dataCov <- tolower(getCov(data)$covnames)
-        missingCov <- modelCov[!modelCov %in% dataCov]
-        if (length(missingCov) > 0) { # if not identical, abort
-          msg <- c(msg, "{.arg {modelCov}} {?is/are} missing from the data.")
-          run_error <- run_error + 1
-        }
-      }
-
-      # cycles
-      # if programmer is a crazy Norwegian....
-      if (cycles < 0) {
-        msg <- c(msg, "Error: {.arg cycles} must be 0 or greater.")
-        run_error <- run_error + 1
-      }
-
-      # output equations
-      if (!is.null(data$standard_data$outeq)) {
-        dataOut <- max(data$standard_data$outeq, na.rm = TRUE)
-      } else {
-        dataOut <- 1
-      }
-      modelOut <- self$model_list$n_out
-
-
-      #### Algorithm ####
-      algorithm <- toupper(algorithm)
-      if (cycles == 0) {
-        if (prior == "sobol") {
-          msg <- c(msg, "Cannot use {.code prior = 'sobol'} with {.code cycles = 0}.")
-          run_error <- run_error + 1
-        }
-        algorithm <- "POSTPROB"
-      } else {
-        if (!(algorithm %in% c("NPAG", "NPOD"))) {
-          msg <- c(msg, "Unsupported algorithm. Supported algorithms are 'NPAG' and 'NPOD'.")
-          run_error <- run_error + 1
-        }
-      }
-      if (algorithm == "POSTPROB" && cycles > 0) {
-        msg <- c(msg, "Warning: {.code algorithm = 'POSTPROB'} is used with {.code cycles = 0}. {.code cycles} set to 0.")
-        cycles <- 0
-      }
-
-
-      if (getPMoptions()$backend != "rust") {
-        cli::cli_abort(c("x" = "Error: unsupported backend.", "i" = "See help for {.fn setPMoptions}"))
-      }
-
-      #### Include or exclude subjects ####
-      if (is.null(include)) {
-        include <- unique(data$standard_data$id)
-      }
-      if (is.null(exclude)) {
-        exclude <- NA
-      }
-      data_filtered <- data$standard_data %>% includeExclude(include, exclude)
-
-      if (nrow(data_filtered) == 0) {
-        msg <- c(msg, "No subjects remained after filtering.")
-        run_error <- run_error + 1
-      }
-
-      # set prior
-      if (prior != "sobol") {
-        if (is.numeric(prior)) {
-          # prior specified as a run number
-          if (!file.exists(glue::glue("{path}/{prior}/outputs/theta.csv"))) {
-            msg <- c(msg, "{.arg prior} file does not exist.", "i" = "Check the file path.")
-            run_error <- run_error + 1
-          }
-          file.copy(glue::glue("{path}/{prior}/outputs/theta.csv"), "prior.csv", overwrite = TRUE)
-          prior <- "prior.csv"
-        } else if (is.character(prior)) {
-          # prior specified as a filename
-          if (!file.exists(prior)) {
-            msg <- c(msg, "{.arg prior} file does not exist.")
-            run_error <- run_error + 1
-          }
-          file.copy(prior, "prior.csv", overwrite = TRUE) # ensure in current working directory
-        } else if (is.data.frame(prior)) {
-          # prior specified as a data frame
-          if (!all(c("prob", self$model_list$parameters) %in% names(prior))) {
-            msg <- c(msg, "{.arg prior} data frame must contain columns for parameters and probabilities.")
-            run_error <- run_error + 1
-          }
-          prior <- prior %>% dplyr::select(all_of(self$model_list$parameters), prob)
-          write.csv(prior, "prior.csv", row.names = FALSE)
-        } else {
-          msg <- c(msg, "{.arg prior} must be a numeric run number or character filename.")
-          run_error <- run_error + 1
-        }
-      } else {
-        prior <- "sobol"
-      }
-
-      #### Abort if errors before creating new folder ####
-      if (run_error > 0) {
-        cli::cli_alert_danger("{.strong PM_model$fit() aborted due to {run_error} error{?s}:}")
-        purrr::walk(msg, \(m) cli::cli_bullets(c("*" = m)))
-        return(invisible(NULL))
-      }
-      #### Continue with fit ####
-
-      # check if model compiled and if not, do so
-      self$compile()
-
-      intern <- TRUE # always true until (if) rust can run separately from R
-
-
-      # make new output directory
-
-      if (is.null(run)) {
-        olddir <- list.dirs(path, recursive = FALSE)
-        olddir <- olddir[grep("^\\./[[:digit:]]+", olddir)]
-        olddir <- sub("^\\./", "", olddir)
-        if (length(olddir) > 0) {
-          run <- as.character(max(as.numeric(olddir)) + 1)
-        } else {
-          run <- "1"
-        }
-      } else {
-        if (!is.numeric(run)) {
-          msg <- c(msg, "{.arg run} must be numeric, so was ignored.")
-        }
-      }
-
-      path_run <- normalizePath(file.path(path, run), mustWork = FALSE)
-
-      if (file.exists(path_run)) {
-        if (overwrite) {
-          unlink(path_run, recursive = TRUE)
-          msg <- c(msg, "The previous run in folder '{path_run}' was overwritten.")
-        } else {
-          cli::cli_inform(
-            c("i" = "The previous run from '{path_run}' was read.", " " = "Set {.arg overwrite} to {.val TRUE} to overwrite prior run in '{path_run}'.")
-          )
-          return(invisible(PM_load(file = normalizePath(file.path(path_run, "PMout.Rdata"), mustWork = FALSE))))
-        }
-      }
-
-      fs::dir_create(path_run)
-
-      #### Save input objects ####
-      fs::dir_create(normalizePath(file.path(path_run, "inputs"), mustWork = FALSE))
-      PM_data$new(data_filtered, quiet = TRUE)$save(normalizePath(file.path(path_run, "inputs", "gendata.csv"), mustWork = FALSE), header = FALSE)
-      saveRDS(list(data = data, model = self), file = normalizePath(file.path(path_run, "inputs", "fit.rds"), mustWork = FALSE))
-      file.copy(self$binary_path, normalizePath(file.path(path_run, "inputs"), mustWork = FALSE))
-
-      # Get ranges and calculate points
-      ranges <- lapply(self$model_list$pri, function(x) {
-        c(x$min, x$max)
-      })
-
-      names(ranges) <- tolower(names(ranges))
-      # Set initial grid points (only applies for sobol)
-      marginal_densities <- sapply(ranges, function(x) {
-        points / (x[2] - x[1])
-      })
-      if (any(marginal_densities < 2)) {
-        increase_to <- round(points * (max(2 / marginal_densities)), 0)
-        msg <- c(msg, "Recommend increasing {.arg points} to at least {increase_to} to ensure adequate coverage of parameter space.")
-      }
-
-
-      if (intern) {
-        ### CALL RUST
-        out_path <- normalizePath(file.path(path_run, "outputs"), mustWork = FALSE)
-        msg <- c(msg, "Run results were saved in folder '{.path {out_path}}'")
-        rlang::try_fetch(
-          fit(
-            # defined in extendr-wrappers.R
-            model_path = normalizePath(self$binary_path),
-            data = normalizePath(file.path(path_run, "inputs", "gendata.csv")),
-            params = list(
-              ranges = ranges, # not important but needed for POSTPROB
-              algorithm = algorithm,
-              error_models = lapply(self$model_list$err, function(x) x$flatten()),
-              idelta = idelta,
-              tad = tad,
-              max_cycles = cycles, # will be hardcoded in Rust to 0 for POSTPROB
-              prior = prior, # needs warning if missing and algorithm = POSTPROB
-              points = points, # only relevant for sobol prior
-              seed = seed
-            ),
-            output_path = out_path,
-            kind = tolower(self$model_list$type)
-          ),
-          error = function(e) {
-            cli::cli_warn("Unable to create {.cls PM_result} object", parent = e)
-            return(NULL)
-          }
-        )
-
-        PM_parse(path = out_path)
-        res <- PM_load(path = normalizePath(out_path), file = "PMout.Rdata")
-        if (report != "none") {
-          valid_report <- tryCatch(
-            PM_report(res, path = normalizePath(out_path), template = report, quiet = TRUE),
-            error = function(e) {
-              -1
-            }
-          )
-          if (valid_report == 1) {
-            msg <- c(msg, "Report generated with {report} template.")
-            # if(tolower(algorithm) == "postprob") {this_alg <- "map"} else {this_alg <- "fit"}
-            msg <- c(msg, "If assigned to a variable, e.g. {.code run{run} <-}, results are available in {.code run{run}}.")
-          } else {
-            msg <- c(msg, "Report could not be generated.")
-          }
-        }
-
-
-        if (length(msg) > 1) {
-          cli::cli_h1("Notes:")
-          cli::cli_ul()
-          purrr::walk(msg[-1], ~ cli::cli_li(.x))
-          cli::cli_end()
-        }
-        return(invisible(res))
-      } else {
-        cli::cli_abort(
-          c("x" = "Error: Currently, the rust engine only supports internal runs.", "i" = "This is a temporary limitation.")
-        )
-      }
-    }, # end fit method
-
-    #' @description
-    #' Calculate posteriors from a fitted model.
-    #' #' @details
-    #' This method calculates posteriors from a compiled model. It is not necessary to have
-    #' run the model first, but it is necessary to have an informative prior distribution.
-    #' This prior will typically be the result of a previous run, but may also be a file
-    #' containing support points, with each column named as a parameter in the model plus a final column
-    #' for probability.  Each row contains values for the parameters and the associated probability for
-    #' those parameter values.  The file can be saved as a csv file.
-    #'
-    #' To calculate the posteriors, `map()` calls the `fit()` method with the `cycles` argument set to 0
-    #' and the `algorithm` argument set to "POSTPROB". If `data` are not provided as an argument to
-    #' `map()`, the model's `data` field is used instead. If `data` is provided, it must be a
-    #' [PM_data] object or the pathname of a file which can be loaded as a [PM_data] object.
-    #' @param ... Arguments passed to the `fit` method. Note that the `cycles` argument is set to 0,
-    #' and the `algorithm` argument is set to "POSTPROB" automatically.
-    map = function(...) {
-      # browser()
-      args <- list(...)
-
-      if (!is.null(purrr::pluck(args, "cycles")) && purrr::pluck(args, "cycles") != 0) {
-        cli::cli_inform(c("i" = "{.arg cycles} set to 0 for posteriors"))
-      }
-      args$cycles <- 0 # ensure cycles is set to 0
-
-
-      if (!is.null(purrr::pluck(args, "algorithm")) && purrr::pluck(args, "algorithm") != "POSTPROB") {
-        cli::cli_inform(c("i" = "{.arg algorithm} set to POSTPROB for posteriors"))
-      }
-      args$algorithm <- "POSTPROB" # ensure algorithm is set to POSTPROB
-
-
-      if (is.null(purrr::pluck(args, "data"))) {
-        cli::cli_abort(c("x" = "Data must be specified for posteriors."))
-      }
-
-      if (is.null(purrr::pluck(args, "prior")) || purrr::pluck(args, "prior") == "sobol") {
-        cli::cli_abort(c(
-          "x" = "Please specify a non-uniform prior for posteriors.",
-          " " = "This can be a prior run number or the name of a file with support points."
-        ))
-      }
-
-      do.call(self$fit, args)
-    },
-    #' @description
-    #' Simulate data from the model using a set of parameter values.
-    #' @details
-    #' This method simulates output from the model using a set of parameter values
-    #' provided in the `theta` matrix and the template for dosing/observations in
-    #' the `data` object.
-    #' @param data A [PM_data] object containing the dosing and observation information.
-    #' @param theta A matrix of parameter values to use for the simulation.
-    #' The `theta` matrix should have the same number of columns as the number of primary parameters in the model.
-    #' Each row of `theta` represents a different set of parameter values.
-    #'
-    sim = function(data, theta) {
-      if (!inherits(data, "PM_data")) {
-        cli::cli_abort(c("x" = "Data must be a PM_data object."))
-      }
-      if (!is.matrix(theta)) {
-        cli::cli_abort(c("x" = "theta must be a matrix."))
-      }
-      if (!is.numeric(theta)) {
-        cli::cli_abort(c("x" = "theta must be a matrix of numeric values."))
-      }
-      if (ncol(theta) != length(private$get_primary())) {
-        cli::cli_abort(c("x" = "theta must have the same number of columns as the number of parameters."))
-      }
-
-
-      temp_csv <- tempfile(fileext = ".csv")
-      data$save(temp_csv, header = FALSE)
-      if (getPMoptions()$backend == "rust") {
-        if (is.null(self$binary_path)) {
-          self$compile()
-          if (is.null(self$binary_path)) {
-            cli::cli_abort(c("x" = "Model must be compiled before simulating."))
-          }
-        }
-        sim <- simulate_all(temp_csv, self$binary_path, theta, kind = tolower(self$model_list$type))
-      } else {
-        cli::cli_abort(c("x" = "This function can only be used with the rust backend."))
-      }
-      return(sim)
-    },
-    #' @description
-    #' Compile the model to a binary file.
-    #' @details
-    #' This method write the model to a Rust file in a temporary path,
-    #' updates the `binary_path` field for the model, and compiles that
-    #' file to a binary file that can be used for fitting or simulation.
-    #' If the model is already compiled, the method does nothing.
-    #'
-    compile = function() {
-      if (!is.null(self$binary_path) && file.exists(self$binary_path)) {
-        # model is compiled
-        return(invisible(NULL))
-      }
-
-      model_path <- file.path(tempdir(), "model.rs")
-      private$write_model_to_rust(model_path)
-      output_path <- tempfile(pattern = "model_", fileext = ".pmx")
-      cli::cli_inform(c("i" = "Compiling model..."))
-      # path inside Pmetrics package
-      template_path <- if (Sys.getenv("env") == "Development") {
-        temporary_path()
-      } else {
-        system.file(package = "Pmetrics")
-      }
-      if (file.access(template_path, 0) == -1 | file.access(template_path, 2) == -1) {
-        cli::cli_abort(c(
-          "x" = "Template path {.path {template_path}} does not exist or is not writable.",
-          "i" = "Please set the template path with {.fn setPMoptions} (choose {.emph Compile Options}), to an existing, writable folder."
-        ))
-      }
-      if (Sys.getenv("env") == "Development") {
-        cat("Using template path:", template_path, "\n")
-      }
-      tryCatch(
-        {
-          compile_model(model_path, output_path, private$get_primary(), template_path, kind = tolower(self$model_list$type))
-          self$binary_path <- output_path
-        },
-        error = function(e) {
-          cli::cli_abort(
-            c("x" = "Model compilation failed: {e$message}", "i" = "Please check the model file and try again.")
-          )
-        }
-      )
-
-      return(invisible(self))
-    }, # end compile method
-    #' @description
-    #' Copy model code to clipboard.
-    #' @details
-    #' This method copies the R code to create the model to the clipboard.
-    #' This is useful for saving the model code in a script, as model files
-    #' will be deprecated in future versions of Pmetrics.
-    copy = function() {
-      arg_list <- self$arg_list
+        
+        return(invisible(self))
+      }, # end compile method
+      #' @description
+      #' Copy model code to clipboard.
+      #' @details
+      #' This method copies the R code to create the model to the clipboard.
+      #' This is useful for saving the model code in a script, as model files
+      #' will be deprecated in future versions of Pmetrics.
+      copy = function() {
+        arg_list <- self$arg_list
 
       # pri
       pri <- c(
