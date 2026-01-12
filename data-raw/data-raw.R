@@ -35,11 +35,11 @@ usethis::use_data(mic1, overwrite = TRUE)
 
 # Run Files -------------------------------------------------------------------
 
-model <- readLines(file.path(wd, "model.txt"))
-usethis::use_data(model, overwrite = TRUE)
+# model <- readLines(file.path(wd, "model.txt"))
+# usethis::use_data(model, overwrite = TRUE)
 
-# model file
-modEx <- PM_model$new(file.path(wd, "model.txt"))
+# # model file
+#modEx <- PM_model$new(file.path(wd, "model.txt"))
 modEx <- PM_model$new(
 
   pri = list(

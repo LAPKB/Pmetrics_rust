@@ -409,7 +409,7 @@ PM_model <- R6::R6Class(
             ))
           }
           self$arg_list <- private$R6fromFile(x) # read file and populate fields
-          cli::cli_inform(c("i" = "{.strong Note:} Model files will be deprecated in future versions of Pmetrics."))
+          # cli::cli_inform(c("i" = "{.strong Note:} Model files will be deprecated in future versions of Pmetrics."))
           self$copy() # copy to clipboard
         } else if (is.list(x)) { # x is a list in R
           purrr::walk(model_sections, \(s) {
@@ -1374,7 +1374,7 @@ PM_model <- R6::R6Class(
           output_path <- tempfile(pattern = "model_", fileext = ".pmx")
           cli::cli_inform(c("i" = "Compiling model..."))
           # path inside Pmetrics package
-          template_path <- if (Sys.getenv("env") == "Development") { temporary_path() } else { system.file(package = "Pmetrics")}
+          template_path <- if (Sys.getenv("env") == "Development") { file.path(temporary_path(), "template") } else { system.file(package = "Pmetrics")}
           if (file.access(template_path, 0) == -1 | file.access(template_path, 2) == -1){
             cli::cli_abort(c("x" = "Template path {.path {template_path}} does not exist or is not writable.",
             "i" = "Please set the template path with {.fn setPMoptions} (choose {.emph Compile Options}), to an existing, writable folder."
@@ -1396,11 +1396,26 @@ PM_model <- R6::R6Class(
         return(invisible(self))
       }, # end compile method
       #' @description
+      #' Save model to file (deprecated).
+      #' @details
+      #' This method is deprecated. Existing or manually created model files may be read with `PM_model$new(filename)`,
+      #' but including model code in scripts is preferred, as this makes models used in runs transparent and more easily edited.
+      #' Use the `PM_model$copy()` method instead to copy the model code to the clipboard and paste into scripts.
+      save = function(){
+        cli::cli_warn(c("x" = "Saving model files is deprecated.", 
+        "i" = "Model list copied to clipboard."))
+        self$copy()
+        return(invisible(self))
+      },
+
+
+
+
+      #' @description
       #' Copy model code to clipboard.
       #' @details
       #' This method copies the R code to create the model to the clipboard.
-      #' This is useful for saving the model code in a script, as model files
-      #' will be deprecated in future versions of Pmetrics.
+      #' This is useful for saving the model code in a script.
       copy = function() {
         arg_list <- self$arg_list
 
