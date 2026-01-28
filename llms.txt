@@ -385,8 +385,6 @@ Pmetrics datasets
   Example MIC data
 - [`modEx`](https://lapkb.github.io/Pmetrics_rust/reference/modEx.md) :
   Pmetrics model object
-- [`model`](https://lapkb.github.io/Pmetrics_rust/reference/model.md) :
-  Pmetrics model
 - [`simEx`](https://lapkb.github.io/Pmetrics_rust/reference/simEx.md) :
   Example simulator output
 

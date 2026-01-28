@@ -68,6 +68,8 @@ Michael Neely
 
 - [`PM_model$compile()`](#method-PM_model-compile)
 
+- [`PM_model$save()`](#method-PM_model-save)
+
 - [`PM_model$copy()`](#method-PM_model-copy)
 
 - [`PM_model$clone()`](#method-PM_model-clone)
@@ -761,6 +763,24 @@ already compiled, the method does nothing.
 
 ------------------------------------------------------------------------
 
+### Method [`save()`](https://rdrr.io/r/base/save.html)
+
+Save model to file (deprecated).
+
+#### Usage
+
+    PM_model$save()
+
+#### Details
+
+This method is deprecated. Existing or manually created model files may
+be read with `PM_model$new(filename)`, but including model code in
+scripts is preferred, as this makes models used in runs transparent and
+more easily edited. Use the `PM_model$copy()` method instead to copy the
+model code to the clipboard and paste into scripts.
+
+------------------------------------------------------------------------
+
 ### Method `copy()`
 
 Copy model code to clipboard.
@@ -772,8 +792,7 @@ Copy model code to clipboard.
 #### Details
 
 This method copies the R code to create the model to the clipboard. This
-is useful for saving the model code in a script, as model files will be
-deprecated in future versions of Pmetrics.
+is useful for saving the model code in a script.
 
 ------------------------------------------------------------------------
 
